@@ -1,0 +1,54 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: prod
+    restart: unless-stopped
+    ports:
+      - ${PORT}:${PORT}
+    environment:
+      APP_ENV: ${APP_ENV}
+      PORT: ${PORT}
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@psql_bp:5432/${POSTGRES_DB}?sslmode=disable
+      JWT_SECRET: ${JWT_SECRET}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      ADMIN_NAME: ${ADMIN_NAME:-VirungaPay Admin}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      APP_PUBLIC_URL: ${APP_PUBLIC_URL:-http://localhost:5173}
+      MAILJET_API_KEY: ${MAILJET_API_KEY:-}
+      MAILJET_SECRET_KEY: ${MAILJET_SECRET_KEY:-}
+      MAIL_FROM: ${MAIL_FROM:-no-reply@virungapay.demo}
+      DB_MAX_OPEN_CONNS: ${DB_MAX_OPEN_CONNS:-25}
+      DB_MAX_IDLE_CONNS: ${DB_MAX_IDLE_CONNS:-5}
+      DB_CONN_MAX_LIFETIME: ${DB_CONN_MAX_LIFETIME:-30m}
+    depends_on:
+      psql_bp:
+        condition: service_healthy
+    networks:
+      - blueprint
+  psql_bp:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - psql_volume_bp:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - blueprint
+
+volumes:
+  psql_volume_bp:
+networks:
+  blueprint:

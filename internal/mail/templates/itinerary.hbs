@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <body style="margin:0;padding:0;background:#F8F8FF;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F8F8FF;">
+      <tr>
+        <td align="center" style="padding:32px 16px;">
+          <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="width:100%;max-width:560px;background:#ffffff;border:2px solid #1B2129;">
+            <tr>
+              <td style="background:#2A2AFF;padding:28px 32px;">
+                <span style="display:inline-block;background:#4BFF2A;color:#1B2129;font-family:Arial,sans-serif;font-size:12px;font-weight:700;letter-spacing:0.04em;padding:8px 10px;">VP</span>
+                <span style="color:#ffffff;font-family:Arial,sans-serif;font-size:18px;font-weight:600;padding-left:10px;">VirungaPay</span>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:36px 32px 12px;font-family:Arial,sans-serif;color:#28313D;">
+                <p style="margin:0 0 8px;font-size:13px;letter-spacing:0.14em;text-transform:uppercase;color:#2A2AFF;">Invoice {{invoiceNumber}}</p>
+                <h1 style="margin:0 0 16px;font-size:28px;line-height:1.2;font-weight:600;color:#1B2129;">{{title}}</h1>
+                <p style="margin:0 0 16px;font-size:16px;line-height:1.5;">{{businessName}} sent this itinerary for {{customerName}}.</p>
+                <p style="margin:0 0 16px;font-size:16px;line-height:1.5;">{{startsOn}} to {{endsOn}} · {{partySize}} travellers</p>
+                <p style="margin:0 0 16px;font-size:16px;line-height:1.5;">{{summary}}</p>
+                <p style="margin:0 0 28px;font-size:20px;font-weight:700;color:#1B2129;">{{currency}} {{amount}}</p>
+                {{#each days}}
+                <p style="margin:0 0 4px;font-size:15px;font-weight:700;">Day {{dayNumber}}. {{title}}</p>
+                <p style="margin:0 0 12px;font-size:15px;line-height:1.5;">{{body}}</p>
+                {{/each}}
+                {{#if inclusions}}
+                <p style="margin:16px 0 8px;font-size:15px;font-weight:700;">Included</p>
+                {{#each inclusions}}<p style="margin:0 0 4px;font-size:15px;">{{this}}</p>{{/each}}
+                {{/if}}
+                {{#if exclusions}}
+                <p style="margin:16px 0 8px;font-size:15px;font-weight:700;">Not included</p>
+                {{#each exclusions}}<p style="margin:0 0 4px;font-size:15px;">{{this}}</p>{{/each}}
+                {{/if}}
+                <p style="margin:28px 0 0;">
+                  <a href="{{payURL}}" style="display:inline-block;background:#4BFF2A;color:#1B2129;text-decoration:none;font-family:Arial,sans-serif;font-size:14px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:14px 22px;border:2px solid #1B2129;">Pay {{currency}} {{amount}}</a>
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:16px 32px;border-top:2px solid #1B2129;font-family:Arial,sans-serif;font-size:12px;color:#6c757d;">East Africa · VirungaPay · {{invoiceNumber}}</td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

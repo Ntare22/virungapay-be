@@ -1,0 +1,719 @@
+basePath: /
+definitions:
+  cmd_api.statusResponse:
+    properties:
+      status:
+        example: ok
+        type: string
+    type: object
+  internal_auth.AcceptRequest:
+    properties:
+      password:
+        minLength: 8
+        type: string
+      token:
+        type: string
+    required:
+    - password
+    - token
+    type: object
+  internal_auth.ForgotRequest:
+    properties:
+      email:
+        example: amelie@example.com
+        type: string
+    required:
+    - email
+    type: object
+  internal_auth.LoginRequest:
+    properties:
+      email:
+        example: amelie@example.com
+        type: string
+      password:
+        example: correct horse
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  internal_auth.MessageResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  internal_auth.ProfileRequest:
+    properties:
+      phone:
+        example: "+256700000000"
+        type: string
+    required:
+    - phone
+    type: object
+  internal_auth.PublicUser:
+    properties:
+      email:
+        type: string
+      email_verified:
+        type: boolean
+      id:
+        type: string
+      name:
+        type: string
+      organisation_id:
+        type: string
+      phone:
+        type: string
+      role:
+        type: string
+      status:
+        type: string
+    type: object
+  internal_auth.RegisterResponse:
+    properties:
+      user:
+        $ref: '#/definitions/internal_auth.PublicUser'
+    type: object
+  internal_auth.ResetRequest:
+    properties:
+      password:
+        minLength: 8
+        type: string
+      token:
+        type: string
+    required:
+    - password
+    - token
+    type: object
+  internal_auth.Session:
+    properties:
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/internal_auth.PublicUser'
+    type: object
+  internal_auth.TokenRequest:
+    properties:
+      token:
+        type: string
+    required:
+    - token
+    type: object
+  internal_auth.TouristSignupRequest:
+    properties:
+      email:
+        example: amelie@example.com
+        type: string
+      name:
+        example: Amelie Laurent
+        type: string
+      password:
+        example: correct horse
+        minLength: 8
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  internal_company.Company:
+    properties:
+      association_member_of:
+        type: string
+      country:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  internal_company.CreateRequest:
+    properties:
+      association:
+        example: AUTO
+        type: string
+      country:
+        example: UG
+        type: string
+      name:
+        example: Kigezi Highland Safaris
+        type: string
+    required:
+    - country
+    - name
+    type: object
+  internal_company.InviteRequest:
+    properties:
+      email:
+        example: peter@example.com
+        type: string
+      name:
+        example: Peter Mugisha
+        type: string
+      phone:
+        example: "+256700000001"
+        type: string
+      role:
+        example: driver
+        type: string
+    required:
+    - email
+    - name
+    - role
+    type: object
+  internal_company.InviteResponse:
+    properties:
+      email:
+        type: string
+      role:
+        type: string
+      status:
+        type: string
+      user_id:
+        type: string
+    type: object
+  virungapay-be_internal_auth.PublicUser:
+    properties:
+      email:
+        type: string
+      email_verified:
+        type: boolean
+      id:
+        type: string
+      name:
+        type: string
+      organisation_id:
+        type: string
+      phone:
+        type: string
+      role:
+        type: string
+      status:
+        type: string
+    type: object
+  virungapay-be_internal_auth.RegisterResponse:
+    properties:
+      user:
+        $ref: '#/definitions/virungapay-be_internal_auth.PublicUser'
+    type: object
+  virungapay-be_internal_auth.SignupRequest:
+    properties:
+      email:
+        example: amina@example.com
+        type: string
+      name:
+        example: Amina Kato
+        type: string
+      password:
+        example: correct horse
+        minLength: 8
+        type: string
+      phone:
+        example: "+256700000000"
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  virungapay-be_internal_middleware.APIError:
+    properties:
+      code:
+        example: invalid_request
+        type: string
+      details: {}
+      message:
+        example: request body is invalid
+        type: string
+    type: object
+  virungapay-be_internal_middleware.ErrorResponse:
+    properties:
+      error:
+        $ref: '#/definitions/virungapay-be_internal_middleware.APIError'
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Simulated payments API for the VirungaPay MVP. PWA routes are under
+    /v1. Staff routes are under /admin/v1.
+  title: VirungaPay API
+  version: "1.0"
+paths:
+  /admin/v1/auth/forgot-password:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Email
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_auth.ForgotRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_auth.MessageResponse'
+      summary: Admin forgot password
+      tags:
+      - auth
+  /admin/v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Signs in a staff role on /admin/v1. Tourists, operators, guides,
+        and drivers are rejected.
+      parameters:
+      - description: Credentials
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_auth.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_auth.Session'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      summary: Admin login
+      tags:
+      - auth
+  /admin/v1/auth/reset-password:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Reset
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_auth.ResetRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_auth.MessageResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      summary: Admin reset password
+      tags:
+      - auth
+  /admin/v1/me:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_auth.PublicUser'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Admin current user
+      tags:
+      - auth
+  /healthz:
+    get:
+      description: Reports that the process is running.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/cmd_api.statusResponse'
+      summary: Liveness
+      tags:
+      - probes
+  /readyz:
+    get:
+      description: Pings Postgres.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/cmd_api.statusResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      summary: Readiness
+      tags:
+      - probes
+  /v1/auth/forgot-password:
+    post:
+      consumes:
+      - application/json
+      description: Emails a reset link when the account can sign in on this API. The
+        response is the same when the email is unknown, and it never contains the
+        token.
+      parameters:
+      - description: Email
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_auth.ForgotRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_auth.MessageResponse'
+      summary: Request a password reset
+      tags:
+      - auth
+  /v1/auth/invites/accept:
+    post:
+      consumes:
+      - application/json
+      description: Sets a password, verifies the email, and activates the invited
+        user.
+      parameters:
+      - description: Invite
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_auth.AcceptRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_auth.Session'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      summary: Accept a guide or driver invite
+      tags:
+      - auth
+  /v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Signs in a verified active tourist, operator owner, guide, or driver.
+      parameters:
+      - description: Credentials
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_auth.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_auth.Session'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      summary: Sign in on the PWA
+      tags:
+      - auth
+  /v1/auth/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Consumes a reset token. The response does not contain a token.
+      parameters:
+      - description: Reset
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_auth.ResetRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_auth.MessageResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      summary: Set a new password
+      tags:
+      - auth
+  /v1/auth/tourists:
+    post:
+      consumes:
+      - application/json
+      description: Creates an unverified tourist and emails a verification link. Phone
+        is not collected here. The response has no session token.
+      parameters:
+      - description: Tourist
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_auth.TouristSignupRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_auth.RegisterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      summary: Register a tourist
+      tags:
+      - auth
+  /v1/auth/verify-email:
+    post:
+      consumes:
+      - application/json
+      description: Consumes the token from the verification email.
+      parameters:
+      - description: Verification token
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_auth.TokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_auth.MessageResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      summary: Verify an email
+      tags:
+      - auth
+  /v1/companies:
+    post:
+      consumes:
+      - application/json
+      description: An operator owner creates one company. A second company is rejected.
+      parameters:
+      - description: Company
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_company.CreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_company.Company'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create the tour company
+      tags:
+      - companies
+  /v1/companies/invites:
+    post:
+      consumes:
+      - application/json
+      description: Emails an invite. The response does not include the token. Guides
+        and drivers cannot self-register.
+      parameters:
+      - description: Invite
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_company.InviteRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_company.InviteResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Invite a guide or driver
+      tags:
+      - companies
+  /v1/companies/mine:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_company.Company'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Current company
+      tags:
+      - companies
+  /v1/me:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_auth.PublicUser'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Current PWA user
+      tags:
+      - auth
+    patch:
+      consumes:
+      - application/json
+      description: A signed-in tourist saves a phone number on their profile.
+      parameters:
+      - description: Phone
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_auth.ProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_auth.PublicUser'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Add a phone number
+      tags:
+      - auth
+  /v1/operators:
+    post:
+      consumes:
+      - application/json
+      description: Creates an unverified operator owner and emails a verification
+        link. This is separate from tourist signup. The response has no session token
+        and no role field.
+      parameters:
+      - description: Operator owner
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/virungapay-be_internal_auth.SignupRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_auth.RegisterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      summary: Register an operator owner
+      tags:
+      - companies
+schemes:
+- http
+securityDefinitions:
+  BearerAuth:
+    description: Session token from login. A Bearer prefix is optional.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

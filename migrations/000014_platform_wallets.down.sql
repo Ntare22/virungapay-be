@@ -1,0 +1,14 @@
+DROP TABLE IF EXISTS transaction_fees;
+DROP TABLE IF EXISTS wallet_movements;
+DROP INDEX IF EXISTS wallets_user_currency_idx;
+DROP INDEX IF EXISTS wallets_platform_kind_currency_idx;
+DELETE FROM wallets WHERE organisation_id IS NULL;
+ALTER TABLE wallets DROP CONSTRAINT IF EXISTS wallets_owner_chk;
+ALTER TABLE wallets DROP COLUMN IF EXISTS user_id;
+ALTER TABLE wallets DROP CONSTRAINT IF EXISTS wallets_balance_chk;
+ALTER TABLE wallets DROP COLUMN IF EXISTS balance;
+ALTER TABLE wallets DROP CONSTRAINT IF EXISTS wallets_kind_chk;
+ALTER TABLE wallets DROP COLUMN IF EXISTS kind;
+ALTER TABLE wallets ALTER COLUMN organisation_id SET NOT NULL;
+ALTER TABLE wallets DROP CONSTRAINT wallets_currency_chk;
+ALTER TABLE wallets ADD CONSTRAINT wallets_currency_chk CHECK (currency IN ('UGX', 'USD'));

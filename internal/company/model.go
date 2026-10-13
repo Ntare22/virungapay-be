@@ -1,0 +1,272 @@
+// Package company lets an operator owner create one tour business and invite its crew.
+package company
+
+import "time"
+
+// Organisation is the organisations table.
+type Organisation struct {
+	ID                  string    `gorm:"type:uuid;primaryKey"`
+	Type                string    `gorm:"type:organisation_type;not null"`
+	Name                string    `gorm:"not null"`
+	Country             string    `gorm:"not null"`
+	AssociationMemberOf *string   `gorm:"type:association_code"`
+	Status              string    `gorm:"type:organisation_status;not null"`
+	CreatedAt           time.Time `gorm:"not null"`
+	UpdatedAt           time.Time `gorm:"not null"`
+}
+
+func (Organisation) TableName() string { return "organisations" }
+
+// CreateInput is a new tour company.
+type CreateInput struct {
+	Name        string
+	Country     string
+	Association string
+}
+
+// InviteInput is a guide or driver invitation.
+type InviteInput struct {
+	Name  string
+	Email string
+	Phone string
+	Role  string
+}
+
+// Company is the operator organisation the caller owns.
+type Company struct {
+	ID                  string   `json:"id"`
+	Name                string   `json:"name"`
+	Country             string   `json:"country"`
+	AssociationMemberOf *string  `json:"association_member_of,omitempty"`
+	Status              string   `json:"status"`
+	Type                string   `json:"type,omitempty"`
+	Wallets             []Wallet `json:"wallets"`
+}
+
+// Wallet is one currency account. Balance is the claim on money in that currency.
+type Wallet struct {
+	ID           string `json:"id"`
+	Kind         string `json:"kind,omitempty"`
+	Name         string `json:"name,omitempty"`
+	Currency     string `json:"currency"`
+	Balance      string `json:"balance"`
+	Default      bool   `json:"is_default"`
+	Organisation string `json:"-"`
+	UserID       string `json:"-"`
+	CreatedBy    string `json:"-"`
+}
+
+// Business is a company plus its owner, for the staff list.
+type Business struct {
+	ID                  string   `json:"id"`
+	Name                string   `json:"name"`
+	Country             string   `json:"country"`
+	AssociationMemberOf *string  `json:"association_member_of,omitempty"`
+	Status              string   `json:"status"`
+	OwnerName           string   `json:"owner_name"`
+	OwnerEmail          string   `json:"owner_email"`
+	Wallets             []Wallet `json:"wallets"`
+}
+
+// BusinessList is the staff list of operator companies.
+type BusinessList struct {
+	Businesses []Business `json:"businesses"`
+}
+
+// Tariff is the customer rate for one currency pair on one calendar day.
+type Tariff struct {
+	ID             string `json:"-"`
+	Pair           string `json:"pair"`
+	QuoteOn        string `json:"quote_on"`
+	IntegratorRate string `json:"integrator_rate"`
+	MarkupBps      int    `json:"markup_bps"`
+	CustomerRate   string `json:"customer_rate"`
+}
+
+// TariffRequest is the day's quotation and VirungaPay's markup.
+type TariffRequest struct {
+	Pair           string `json:"pair" binding:"required" example:"EUR/UGX"`
+	IntegratorRate string `json:"integrator_rate" binding:"required"`
+	MarkupBps      int    `json:"markup_bps" binding:"min=0"`
+}
+
+// FeeSchedule is the flat amount and basis-point fee for one transaction kind and currency.
+type FeeSchedule struct {
+	Kind      string `json:"kind"`
+	Currency  string `json:"currency"`
+	Flat      string `json:"flat"`
+	MarkupBps int    `json:"markup_bps"`
+}
+
+// BureauRequest is a forex bureau added by staff.
+type BureauRequest struct {
+	Name    string `json:"name" binding:"required"`
+	Country string `json:"country" binding:"required"`
+	Owner   string `json:"owner" binding:"required"`
+	Email   string `json:"email" binding:"required"`
+	Phone   string `json:"phone"`
+}
+type MoveRequest struct {
+	FromWalletID string `json:"from_wallet_id" binding:"required"`
+	ToWalletID   string `json:"to_wallet_id" binding:"required"`
+	Amount       string `json:"amount" binding:"required"`
+}
+type FeeScheduleRequest struct {
+	Kind      string `json:"kind" binding:"required"`
+	Currency  string `json:"currency" binding:"required"`
+	Flat      string `json:"flat" binding:"required"`
+	MarkupBps int    `json:"markup_bps" binding:"min=0"`
+}
+
+// Movement is one side of a grouped wallet posting.
+type Movement struct {
+	ID        string
+	GroupID   string
+	Kind      string
+	WalletID  string
+	Direction string
+	Amount    string
+	Currency  string
+	CreatedAt time.Time
+}
+
+// StatementLine is one movement on a wallet statement, with the balance after it.
+type StatementLine struct {
+	ID             string    `json:"id"`
+	Kind           string    `json:"kind"`
+	Direction      string    `json:"direction"`
+	Amount         string    `json:"amount"`
+	Currency       string    `json:"currency"`
+	RunningBalance string    `json:"running_balance"`
+	CreatedAt      time.Time `json:"created_at"`
+}
+
+// CardPayment is the invoice a customer pays by card.
+type CardPayment struct {
+	ItineraryID   string
+	InvoiceNumber string
+	CustomerName  string
+	CustomerEmail string
+}
+
+// TransactionRecord is written with the wallet movements for one payment.
+type TransactionRecord struct {
+	ID                string
+	GroupID           string
+	Kind              string
+	Currency          string
+	Gross             string
+	Fee               string
+	Net               string
+	OrganisationID    string
+	FromName          string
+	ToName            string
+	CounterpartyEmail string
+	ItineraryID       string
+	InvoiceNumber     string
+	QuoteCurrency     string
+	QuoteAmount       string
+	CreatedAt         time.Time
+}
+type Transaction struct {
+	ID            string    `json:"id"`
+	Kind          string    `json:"kind"`
+	Currency      string    `json:"currency"`
+	Gross         string    `json:"gross"`
+	Fee           string    `json:"fee"`
+	Net           string    `json:"net"`
+	FromName      string    `json:"from_name"`
+	ToName        string    `json:"to_name"`
+	InvoiceNumber string    `json:"invoice_number,omitempty"`
+	QuoteCurrency string    `json:"quote_currency,omitempty"`
+	QuoteAmount   string    `json:"quote_amount,omitempty"`
+	CreatedAt     time.Time `json:"created_at"`
+}
+
+// WalletActivity is money in or out of one business wallet.
+type WalletActivity struct {
+	ID            string    `json:"id"`
+	Kind          string    `json:"kind"`
+	Direction     string    `json:"direction"`
+	Amount        string    `json:"amount"`
+	Currency      string    `json:"currency"`
+	InvoiceNumber string    `json:"invoice_number,omitempty"`
+	Counterparty  string    `json:"counterparty,omitempty"`
+	CreatedAt     time.Time `json:"created_at"`
+}
+
+// CollectionRequest records a card payment collected by an operator.
+type CollectionRequest struct {
+	BusinessID string `json:"business_id" binding:"required"`
+	Currency   string `json:"currency" binding:"required"`
+	Amount     string `json:"amount" binding:"required"`
+}
+
+// WithdrawalRequest moves money from an operator wallet to a forex bureau.
+type WithdrawalRequest struct {
+	BusinessID string `json:"business_id" binding:"required"`
+	BureauID   string `json:"bureau_id" binding:"required"`
+	Currency   string `json:"currency" binding:"required"`
+	Amount     string `json:"amount" binding:"required"`
+}
+
+// OwnWithdrawalRequest moves money from the signed-in person's wallet to a forex bureau.
+type OwnWithdrawalRequest struct {
+	BureauID string `json:"bureau_id" binding:"required"`
+	Currency string `json:"currency" binding:"required"`
+	Amount   string `json:"amount" binding:"required"`
+}
+
+// TipRequest moves money from a tourist wallet to a guide or driver.
+type TipRequest struct {
+	FromUserID string `json:"from_user_id" binding:"required"`
+	ToUserID   string `json:"to_user_id" binding:"required"`
+	Currency   string `json:"currency" binding:"required"`
+	Amount     string `json:"amount" binding:"required"`
+}
+type WalletRequest struct {
+	Currency string `json:"currency" binding:"required" example:"USD"`
+}
+
+// CreateRequest is the JSON body for creating a company.
+type CreateRequest struct {
+	Name        string `json:"name" binding:"required" example:"Kigezi Highland Safaris"`
+	Country     string `json:"country" binding:"required,len=2" example:"UG"`
+	Association string `json:"association" example:"AUTO"`
+}
+
+// InviteRequest is the JSON body for inviting a guide or driver.
+type InviteRequest struct {
+	Name  string `json:"name" binding:"required" example:"Peter Mugisha"`
+	Email string `json:"email" binding:"required,email" example:"peter@example.com"`
+	Phone string `json:"phone" example:"+256700000001"`
+	Role  string `json:"role" binding:"required" example:"driver"`
+}
+
+// InviteResponse acknowledges an emailed invite. It does not include the token.
+type InviteResponse struct {
+	UserID string `json:"user_id"`
+	Email  string `json:"email"`
+	Role   string `json:"role"`
+	Status string `json:"status"`
+}
+
+// Member links one person to one company.
+type Member struct {
+	OrganisationID string
+	UserID         string
+	Role           string
+	CreatedAt      time.Time
+}
+
+// Invite is a stored company invite. Only the token hash is persisted.
+type Invite struct {
+	ID             string
+	OrganisationID string
+	UserID         string
+	Role           string
+	TokenHash      string
+	ExpiresAt      time.Time
+	AcceptedAt     *time.Time
+	CreatedAt      time.Time
+}

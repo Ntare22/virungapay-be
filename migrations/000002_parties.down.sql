@@ -1,0 +1,9 @@
+DROP TABLE IF EXISTS beneficiaries;
+DROP TABLE IF EXISTS organisations;
+DROP TABLE IF EXISTS users;
+DROP TYPE IF EXISTS payout_method;
+DROP TYPE IF EXISTS association_code;
+DROP TYPE IF EXISTS organisation_type;
+DROP TYPE IF EXISTS kyc_status;
+DROP TYPE IF EXISTS user_status;
+DROP TYPE IF EXISTS user_role;

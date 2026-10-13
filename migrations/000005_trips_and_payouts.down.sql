@@ -1,0 +1,16 @@
+DROP TABLE IF EXISTS tips;
+DROP TABLE IF EXISTS qr_badges;
+DROP TABLE IF EXISTS park_stays;
+DROP TABLE IF EXISTS cash_draws;
+DROP TABLE IF EXISTS payouts;
+DROP TABLE IF EXISTS split_rules;
+DROP TABLE IF EXISTS trip_budget_lines;
+DROP TABLE IF EXISTS trip_tourists;
+DROP TABLE IF EXISTS trips;
+DROP TYPE IF EXISTS park_stay_status;
+DROP TYPE IF EXISTS cash_draw_purpose;
+DROP TYPE IF EXISTS payout_status;
+DROP TYPE IF EXISTS split_trigger;
+DROP TYPE IF EXISTS split_basis;
+DROP TYPE IF EXISTS budget_category;
+DROP TYPE IF EXISTS trip_status;
