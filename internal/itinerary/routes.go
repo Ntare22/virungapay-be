@@ -17,7 +17,9 @@ func (h *Controller) Mount(r *gin.Engine, authenticate gin.HandlerFunc) {
 	authed.POST("/inquiries", h.CreateInquiry)
 	authed.GET("/itineraries", h.ListItineraries)
 	authed.POST("/itineraries", h.SaveItinerary)
+	authed.GET("/itineraries/mine", h.Mine)
 	authed.GET("/itineraries/:id", h.GetItinerary)
 	authed.PUT("/itineraries/:id", h.SaveItinerary)
 	authed.POST("/itineraries/:id/send", h.Send)
+	authed.POST("/itineraries/:id/assign", h.Assign)
 }

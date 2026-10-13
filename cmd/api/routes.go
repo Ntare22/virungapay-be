@@ -50,7 +50,7 @@ func newHandler(cfg config.Config, db database.Service, sender mail.Sender) (htt
 		return nil, err
 	}
 	companySvc := company.NewService(companies, authSvc, sender, db.WithTx, cfg.Mail.PublicURL)
-	itineraries := itinerary.NewService(itinerary.NewRepository(db.DB()), companySvc, sender, db.WithTx, cfg.Mail.PublicURL)
+	itineraries := itinerary.NewService(itinerary.NewRepository(db.DB()), companySvc, sender, db.WithTx, cfg.Mail.PublicURL, cfg.Mail.PWAURL)
 	authCtrl := auth.NewController(authSvc)
 	companyCtrl := company.NewController(companySvc)
 	itineraryCtrl := itinerary.NewController(itineraries)

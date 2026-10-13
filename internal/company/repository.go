@@ -3,6 +3,7 @@ package company
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -132,6 +133,7 @@ type walletRow struct {
 	UserID         *string `gorm:"type:uuid"`
 	Kind           string  `gorm:"not null"`
 	Name           string  `gorm:"not null"`
+	Username       string  `gorm:"not null"`
 	Currency       string  `gorm:"not null"`
 	Balance        string  `gorm:"type:numeric(20,2);not null"`
 	IsDefault      bool    `gorm:"column:is_default;not null"`
@@ -157,7 +159,7 @@ func (r *Repository) Wallets(ctx context.Context, db *gorm.DB, organisationID st
 
 func walletFromRow(row walletRow) Wallet {
 	wallet := Wallet{
-		ID: row.ID, Kind: row.Kind, Name: row.Name, Currency: row.Currency, Balance: row.Balance, Default: row.IsDefault,
+		ID: row.ID, Kind: row.Kind, Name: row.Name, Username: row.Username, Currency: row.Currency, Balance: row.Balance, Default: row.IsDefault,
 	}
 	if wallet.Balance == "" {
 		wallet.Balance = "0.00"
@@ -183,8 +185,16 @@ func (r *Repository) InsertWallet(ctx context.Context, db *gorm.DB, wallet Walle
 	if balance == "" {
 		balance = "0.00"
 	}
+	username := normalizeUsername(wallet.Username)
+	if username == "" {
+		var err error
+		username, err = r.nextUsername(ctx, db, r.usernameBase(ctx, db, wallet), wallet.Currency)
+		if err != nil {
+			return err
+		}
+	}
 	row := walletRow{
-		ID: wallet.ID, Kind: kind, Name: wallet.Name, Currency: wallet.Currency, Balance: balance,
+		ID: wallet.ID, Kind: kind, Name: wallet.Name, Username: username, Currency: wallet.Currency, Balance: balance,
 		IsDefault: wallet.Default, CreatedAt: at, UpdatedAt: at,
 	}
 	if wallet.Organisation != "" {
@@ -197,6 +207,30 @@ func (r *Repository) InsertWallet(ctx context.Context, db *gorm.DB, wallet Walle
 		row.CreatedBy = &wallet.CreatedBy
 	}
 	return db.WithContext(ctx).Create(&row).Error
+}
+
+func (r *Repository) WalletByID(ctx context.Context, walletID string) (Wallet, error) {
+	var row walletRow
+	err := r.db.WithContext(ctx).Where("id = ?", walletID).First(&row).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return Wallet{}, errNotFound
+	}
+	if err != nil {
+		return Wallet{}, err
+	}
+	return walletFromRow(row), nil
+}
+
+func (r *Repository) RenameWallet(ctx context.Context, walletID, name, username string, at time.Time) error {
+	result := r.db.WithContext(ctx).Model(&walletRow{}).Where("id = ?", walletID).
+		Updates(map[string]any{"name": name, "username": username, "updated_at": at})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return errNotFound
+	}
+	return nil
 }
 
 func (r *Repository) SetStatus(ctx context.Context, db *gorm.DB, organisationID, status string, at time.Time) error {
@@ -368,6 +402,32 @@ func (r *Repository) ListPlatformWallets(ctx context.Context) ([]Wallet, error) 
 		wallets = append(wallets, walletFromRow(row))
 	}
 	return wallets, nil
+}
+
+func (r *Repository) ListPersonWallets(ctx context.Context) ([]PersonWallet, error) {
+	var rows []PersonWallet
+	err := r.db.WithContext(ctx).Raw(`
+SELECT wallets.id, wallets.kind, wallets.name, COALESCE(wallets.username, '') AS username, wallets.currency, wallets.balance::text AS balance,
+       trim(concat_ws(' ', users.first_name, users.last_name)) AS holder_name, users.email AS holder_email, users.role AS holder_role, users.status AS holder_status
+FROM wallets
+JOIN users ON users.id = wallets.user_id
+WHERE wallets.kind IN ('virungapass', 'personal')
+ORDER BY users.role, users.last_name, users.first_name, wallets.currency
+`).Scan(&rows).Error
+	return rows, err
+}
+
+func (r *Repository) ListTourists(ctx context.Context) ([]TouristAccount, error) {
+	var rows []TouristAccount
+	err := r.db.WithContext(ctx).Raw(`
+SELECT users.id, trim(concat_ws(' ', users.first_name, users.last_name)) AS name, users.email,
+       COALESCE(wallets.username, '') AS username
+FROM users
+LEFT JOIN wallets ON wallets.user_id = users.id AND wallets.kind = 'virungapass'
+WHERE users.role = 'tourist'
+ORDER BY users.last_name, users.first_name
+`).Scan(&rows).Error
+	return rows, err
 }
 
 func (r *Repository) PersonalWallet(ctx context.Context, db *gorm.DB, userID, currency string) (Wallet, error) {
@@ -616,6 +676,117 @@ UPDATE transaction_fees
 SET flat = ?::numeric, markup_bps = ?, updated_by = ?, updated_at = ?
 WHERE kind = ? AND currency = ?
 `, schedule.Flat, schedule.MarkupBps, actorID, at, schedule.Kind, schedule.Currency).Error
+}
+
+func (r *Repository) ListCrew(ctx context.Context, organisationID string) ([]CrewMember, error) {
+	var rows []struct {
+		UserID    string
+		FirstName string
+		LastName  string
+		Email     string
+		Phone     string
+		Status    string
+		Role      string
+		Currency  string
+		Balance   string
+		Username  string
+	}
+	err := r.db.WithContext(ctx).Table("organisation_members").
+		Select(`users.id AS user_id, users.first_name, users.last_name, users.email, COALESCE(users.phone, '') AS phone, users.status, organisation_members.member_role AS role, COALESCE(wallets.currency, '') AS currency, COALESCE(wallets.balance::text, '') AS balance, COALESCE(wallets.username, '') AS username`).
+		Joins("JOIN users ON users.id = organisation_members.user_id").
+		Joins("LEFT JOIN wallets ON wallets.user_id = users.id AND wallets.kind = 'personal' AND wallets.currency = 'UGX'").
+		Where("organisation_members.organisation_id = ? AND organisation_members.member_role IN ?", organisationID, []string{auth.RoleGuide, auth.RoleDriver}).
+		Order("organisation_members.created_at DESC").
+		Scan(&rows).Error
+	if err != nil {
+		return nil, err
+	}
+	crew := make([]CrewMember, 0, len(rows))
+	for _, row := range rows {
+		crew = append(crew, CrewMember{
+			UserID: row.UserID, Name: stringsTrim(row.FirstName, row.LastName), Email: row.Email, Phone: row.Phone,
+			Role: row.Role, Status: row.Status, WalletCurrency: row.Currency, WalletBalance: row.Balance, Username: row.Username,
+		})
+	}
+	return crew, nil
+}
+
+func (r *Repository) usernameBase(ctx context.Context, db *gorm.DB, wallet Wallet) string {
+	if strings.TrimSpace(wallet.Name) != "" {
+		return wallet.Name
+	}
+	if wallet.UserID != "" {
+		var row struct {
+			FirstName string
+			LastName  string
+		}
+		_ = db.WithContext(ctx).Table("users").Select("first_name, last_name").Where("id = ?", wallet.UserID).Scan(&row).Error
+		if name := strings.TrimSpace(row.FirstName + " " + row.LastName); name != "" {
+			return name
+		}
+	}
+	if wallet.Organisation != "" {
+		var name string
+		_ = db.WithContext(ctx).Table("organisations").Select("name").Where("id = ?", wallet.Organisation).Scan(&name).Error
+		if strings.TrimSpace(name) != "" {
+			return name
+		}
+	}
+	if wallet.Kind != "" {
+		return wallet.Kind
+	}
+	return "wallet"
+}
+
+func (r *Repository) nextUsername(ctx context.Context, db *gorm.DB, base, currency string) (string, error) {
+	for n := 1; n < 100; n++ {
+		candidate := usernameCandidate(base, currency, n)
+		var count int64
+		if err := db.WithContext(ctx).Model(&walletRow{}).Where("username = ?", candidate).Count(&count).Error; err != nil {
+			return "", err
+		}
+		if count == 0 {
+			return candidate, nil
+		}
+	}
+	return "", errors.New("username")
+}
+
+func (r *Repository) FindByUsername(ctx context.Context, username string) (Wallet, string, error) {
+	var row struct {
+		ID             string
+		OrganisationID *string
+		UserID         *string
+		Kind           string
+		Name           string
+		Username       string
+		Currency       string
+		Balance        string
+		IsDefault      bool
+		OwnerName      string
+	}
+	err := r.db.WithContext(ctx).Table("wallets").
+		Select(`wallets.id, wallets.organisation_id, wallets.user_id, wallets.kind, wallets.name, wallets.username, wallets.currency, wallets.balance::text AS balance, wallets.is_default, COALESCE(NULLIF(trim(concat_ws(' ', users.first_name, users.last_name)), ''), NULLIF(trim(organisations.name), ''), wallets.name) AS owner_name`).
+		Joins("LEFT JOIN users ON users.id = wallets.user_id").
+		Joins("LEFT JOIN organisations ON organisations.id = wallets.organisation_id").
+		Where("wallets.username = ?", username).
+		Scan(&row).Error
+	if err != nil {
+		return Wallet{}, "", err
+	}
+	if row.ID == "" {
+		return Wallet{}, "", errNotFound
+	}
+	wallet := Wallet{
+		ID: row.ID, Kind: row.Kind, Name: row.Name, Username: row.Username, Currency: row.Currency, Balance: row.Balance, Default: row.IsDefault,
+	}
+	if row.UserID != nil {
+		wallet.UserID = *row.UserID
+	}
+	if row.OrganisationID != nil {
+		wallet.Organisation = *row.OrganisationID
+	}
+	return wallet, strings.TrimSpace(row.OwnerName), nil
 }
 
 func (r *Repository) UserRole(ctx context.Context, userID string) (string, error) {

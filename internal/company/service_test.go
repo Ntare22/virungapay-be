@@ -56,6 +56,12 @@ func TestInviteSendsMailAndTouristCannotInvite(t *testing.T) {
 	require.NotContains(t, invited.Email, "token")
 	require.Len(t, box.Messages, 1)
 	require.NotEmpty(t, box.TokenFor("peter@example.com"))
+	wallet, ok := store.personal["crew-1/UGX"]
+	require.True(t, ok)
+	require.Equal(t, "personal", wallet.Kind)
+	require.Equal(t, "0.00", wallet.Balance)
+	require.Equal(t, "crew-1", wallet.UserID)
+	require.Equal(t, "peter-ugx", wallet.Username)
 }
 
 type memCompany struct {
@@ -116,6 +122,13 @@ func (m *memCompany) InsertWallet(_ context.Context, _ *gorm.DB, wallet Wallet, 
 	if wallet.Balance == "" {
 		wallet.Balance = "0.00"
 	}
+	if wallet.Username == "" {
+		base := wallet.Name
+		if base == "" {
+			base = wallet.Kind
+		}
+		wallet.Username = usernameCandidate(base, wallet.Currency, 1)
+	}
 	if wallet.UserID != "" {
 		if m.personal == nil {
 			m.personal = map[string]Wallet{}
@@ -148,6 +161,49 @@ func (m *memCompany) ClearDefaults(_ context.Context, _ *gorm.DB, organisationID
 	}
 	m.wallets[organisationID] = wallets
 	return nil
+}
+
+func (m *memCompany) WalletByID(_ context.Context, walletID string) (Wallet, error) {
+	for _, wallets := range m.wallets {
+		for _, wallet := range wallets {
+			if wallet.ID == walletID {
+				return wallet, nil
+			}
+		}
+	}
+	for _, wallet := range m.personal {
+		if wallet.ID == walletID {
+			return wallet, nil
+		}
+	}
+	for _, wallet := range m.platform {
+		if wallet.ID == walletID {
+			return wallet, nil
+		}
+	}
+	return Wallet{}, errNotFound
+}
+
+func (m *memCompany) RenameWallet(_ context.Context, walletID, name, username string, _ time.Time) error {
+	for orgID, wallets := range m.wallets {
+		for i := range wallets {
+			if wallets[i].ID == walletID {
+				wallets[i].Name = name
+				wallets[i].Username = username
+				m.wallets[orgID] = wallets
+				return nil
+			}
+		}
+	}
+	for key, wallet := range m.personal {
+		if wallet.ID == walletID {
+			wallet.Name = name
+			wallet.Username = username
+			m.personal[key] = wallet
+			return nil
+		}
+	}
+	return errNotFound
 }
 
 func (m *memCompany) MarkDefault(_ context.Context, _ *gorm.DB, walletID string, _ time.Time) error {
@@ -219,6 +275,8 @@ func (m *memCompany) SaveFeeSchedule(_ context.Context, schedule FeeSchedule, _ 
 	return nil
 }
 
+func (m *memCompany) ListPersonWallets(context.Context) ([]PersonWallet, error) { return nil, nil }
+func (m *memCompany) ListTourists(context.Context) ([]TouristAccount, error) { return nil, nil }
 func (m *memCompany) ListPlatformWallets(context.Context) ([]Wallet, error) {
 	wallets := []Wallet{}
 	for _, wallet := range m.platform {
@@ -335,6 +393,41 @@ func (m *memCompany) ListWalletActivity(context.Context, string) ([]WalletActivi
 
 func (m *memCompany) ListPersonalActivity(context.Context, string) ([]WalletActivity, error) {
 	return nil, nil
+}
+
+func (m *memCompany) FindByUsername(_ context.Context, username string) (Wallet, string, error) {
+	for _, wallet := range m.personal {
+		if wallet.Username == username {
+			return wallet, wallet.Name, nil
+		}
+	}
+	for _, wallets := range m.wallets {
+		for _, wallet := range wallets {
+			if wallet.Username == username {
+				return wallet, wallet.Name, nil
+			}
+		}
+	}
+	for _, wallet := range m.platform {
+		if wallet.Username == username {
+			return wallet, wallet.Name, nil
+		}
+	}
+	return Wallet{}, "", errNotFound
+}
+
+func (m *memCompany) ListCrew(_ context.Context, organisationID string) ([]CrewMember, error) {
+	crew := make([]CrewMember, 0)
+	for _, member := range m.members {
+		if member.OrganisationID != organisationID || (member.Role != auth.RoleGuide && member.Role != auth.RoleDriver) {
+			continue
+		}
+		wallet := m.personal[member.UserID+"/UGX"]
+		crew = append(crew, CrewMember{
+			UserID: member.UserID, Role: member.Role, WalletCurrency: wallet.Currency, WalletBalance: wallet.Balance,
+		})
+	}
+	return crew, nil
 }
 
 func (m *memCompany) UserRole(_ context.Context, userID string) (string, error) {
@@ -479,4 +572,90 @@ func TestGuideSeesPersonalWalletsAndTouristCannotWithdraw(t *testing.T) {
 	list, err := svc.ApprovedBureaus(ctx, auth.RoleGuide)
 	require.NoError(t, err)
 	require.Empty(t, list.Businesses)
+}
+
+func TestOwnerRenamesWalletWithoutChangingUsername(t *testing.T) {
+	store := newMemCompany()
+	svc := NewService(store, &memRegistrar{}, &mail.Recorder{}, func(_ context.Context, fn func(tx *gorm.DB) error) error {
+		return fn(nil)
+	}, "http://app.test")
+	ctx := context.Background()
+	created, err := svc.Create(ctx, "owner-1", auth.RoleOperatorOwner, CreateInput{Name: "Kigezi", Country: "UG"})
+	require.NoError(t, err)
+	_, err = svc.Approve(ctx, "staff-1", auth.RoleVASuperadmin, created.ID)
+	require.NoError(t, err)
+	company, err := svc.Mine(ctx, "owner-1", auth.RoleOperatorOwner)
+	require.NoError(t, err)
+	require.NotEmpty(t, company.Wallets)
+	wallet := company.Wallets[0]
+
+	renamed, err := svc.RenameWallet(ctx, "owner-1", auth.RoleOperatorOwner, wallet.ID, "  Safari float  ", "")
+	require.NoError(t, err)
+	require.Equal(t, "Safari float", renamed.Name)
+	require.Equal(t, wallet.Username, renamed.Username)
+
+	renamed, err = svc.RenameWallet(ctx, "owner-1", auth.RoleOperatorOwner, wallet.ID, "Safari float", "Kigezi Cash")
+	require.NoError(t, err)
+	require.Equal(t, "kigezi-cash", renamed.Username)
+
+	again, err := svc.Mine(ctx, "owner-1", auth.RoleOperatorOwner)
+	require.NoError(t, err)
+	require.Equal(t, "Safari float", again.Wallets[0].Name)
+	require.Equal(t, "kigezi-cash", again.Wallets[0].Username)
+
+	_, err = svc.RenameWallet(ctx, "tourist-1", auth.RoleTourist, wallet.ID, "Not mine", "")
+	require.Error(t, err)
+	_, err = svc.RenameWallet(ctx, "owner-1", auth.RoleOperatorOwner, wallet.ID, "   ", "")
+	require.Error(t, err)
+	_, err = svc.RenameWallet(ctx, "owner-1", auth.RoleOperatorOwner, wallet.ID, "Safari float", "ab")
+	require.Error(t, err)
+
+	tourist, err := svc.MyWallets(ctx, "tourist-1", auth.RoleTourist)
+	require.NoError(t, err)
+	require.NotEmpty(t, tourist)
+	_, err = svc.RenameWallet(ctx, "tourist-1", auth.RoleTourist, tourist[0].ID, "Park money", "kigezi-cash")
+	require.Error(t, err)
+	renamedPass, err := svc.RenameWallet(ctx, "tourist-1", auth.RoleTourist, tourist[0].ID, "Park money", "@ParkMoney")
+	require.NoError(t, err)
+	require.Equal(t, "VirungaPass Wallet", renamedPass.Name)
+	require.Equal(t, "parkmoney", renamedPass.Username)
+}
+
+func TestTouristCanTopUpSendMobileMoneyAndTip(t *testing.T) {
+	store := newMemCompany()
+	store.roles = map[string]string{"tourist-1": auth.RoleTourist, "guide-1": auth.RoleGuide, "owner-1": auth.RoleOperatorOwner}
+	store.personal = map[string]Wallet{
+		"tourist-1/UGX": {ID: "pass-1", Kind: "virungapass", Name: "VirungaPass Wallet", Username: "amina-ugx", Currency: "UGX", Balance: "0.00", UserID: "tourist-1"},
+		"guide-1/UGX":   {ID: "guide-wallet", Kind: "personal", Name: "Peter", Username: "peter-ugx", Currency: "UGX", Balance: "0.00", UserID: "guide-1"},
+	}
+	store.platform = map[string]Wallet{
+		"ova/UGX":             {ID: "ova-ugx", Kind: "ova", Currency: "UGX", Balance: "0.00"},
+		"fee_transaction/UGX": {ID: "fee-ugx", Kind: "fee_transaction", Currency: "UGX", Balance: "0.00"},
+	}
+	svc := NewService(store, &memRegistrar{}, &mail.Recorder{}, func(_ context.Context, fn func(tx *gorm.DB) error) error {
+		return fn(nil)
+	}, "http://app.test")
+	ctx := context.Background()
+
+	require.NoError(t, svc.TopUpCard(ctx, "tourist-1", auth.RoleTourist, "10000", "4242"))
+	require.Equal(t, "10000.00", store.personal["tourist-1/UGX"].Balance)
+	require.Error(t, svc.TopUpCard(ctx, "owner-1", auth.RoleOperatorOwner, "1000", "4242"))
+	require.Error(t, svc.SendMobileMoney(ctx, "tourist-1", auth.RoleTourist, "airtel", "+254700000000", "1000"))
+	require.NoError(t, svc.SendMobileMoney(ctx, "tourist-1", auth.RoleTourist, "mtn", "0771234567", "2000"))
+	require.Equal(t, "8000.00", store.personal["tourist-1/UGX"].Balance)
+
+	require.Error(t, svc.TipCrew(ctx, "tourist-1", auth.RoleTourist, "amina-ugx", "500", "tip"))
+	require.NoError(t, svc.TipCrew(ctx, "tourist-1", auth.RoleTourist, "@peter-ugx", "1500", ""))
+	require.Equal(t, "6500.00", store.personal["tourist-1/UGX"].Balance)
+	require.Equal(t, "1500.00", store.personal["guide-1/UGX"].Balance)
+
+	store.orgs["org-1"] = Company{ID: "org-1", Name: "Kigezi Highland Safaris", Status: "approved", Type: "operator"}
+	store.wallets["org-1"] = []Wallet{{
+		ID: "op-ugx", Kind: "operator", Name: "Kigezi", Username: "kigezi-ugx", Currency: "UGX", Balance: "0.00", Organisation: "org-1",
+	}}
+	require.Error(t, svc.TipCrew(ctx, "tourist-1", auth.RoleTourist, "kigezi-ugx", "500", "tip"))
+	require.Error(t, svc.TipCrew(ctx, "tourist-1", auth.RoleTourist, "peter-ugx", "500", "service"))
+	require.NoError(t, svc.TipCrew(ctx, "tourist-1", auth.RoleTourist, "kigezi-ugx", "1000", "service"))
+	require.Equal(t, "5500.00", store.personal["tourist-1/UGX"].Balance)
+	require.Equal(t, "1000.00", store.wallets["org-1"][0].Balance)
 }

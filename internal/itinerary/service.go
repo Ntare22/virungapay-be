@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"math/big"
 	"net/mail"
+	"net/url"
 	"strings"
 	"time"
 
@@ -47,6 +48,11 @@ type Store interface {
 	MarkSent(ctx context.Context, db *gorm.DB, id, invoice, tokenHash, currency, amount string, at time.Time) error
 	RevertSent(ctx context.Context, id string, at time.Time) error
 	MarkPaid(ctx context.Context, db *gorm.DB, id string, at time.Time) error
+	UserEmail(ctx context.Context, userID string) (string, error)
+	ListMine(ctx context.Context, userID, email string) ([]Itinerary, error)
+	TouristID(ctx context.Context, userID string) (string, error)
+	TouristIDByEmail(ctx context.Context, email string) (string, error)
+	AssignTourist(ctx context.Context, itineraryID, touristID string, at time.Time) error
 	DB() *gorm.DB
 }
 
@@ -57,14 +63,16 @@ type Service struct {
 	mail   appmail.Sender
 	tx     Tx
 	public string
+	pwa    string
 	now    func() time.Time
 }
 
-// NewService builds the itinerary service. public is the app origin used in pay links.
-func NewService(store Store, payer Payer, sender appmail.Sender, run Tx, publicURL string) *Service {
+// NewService builds the itinerary service. public is the website origin used in pay links. pwa is the phone origin used in signup links.
+func NewService(store Store, payer Payer, sender appmail.Sender, run Tx, publicURL, pwaURL string) *Service {
 	return &Service{
 		store: store, payer: payer, mail: sender, tx: run,
 		public: strings.TrimRight(publicURL, "/"),
+		pwa:    strings.TrimRight(pwaURL, "/"),
 		now:    func() time.Time { return time.Now().UTC() },
 	}
 }
@@ -152,6 +160,27 @@ func (s *Service) ListItineraries(ctx context.Context, userID, role string) ([]I
 		return nil, err
 	}
 	list, err := s.store.ListItineraries(ctx, op.OrganisationID)
+	if err != nil {
+		return nil, middleware.Internal("internal_error", "internal server error")
+	}
+	if list == nil {
+		list = []Itinerary{}
+	}
+	return list, nil
+}
+
+func (s *Service) Mine(ctx context.Context, userID, role string) ([]Itinerary, error) {
+	if role != auth.RoleTourist {
+		return nil, middleware.Forbidden("forbidden", "only a tourist can view these itineraries")
+	}
+	email, err := s.store.UserEmail(ctx, userID)
+	if errors.Is(err, errNotFound) {
+		return nil, middleware.NotFound("not_found", "sign in again")
+	}
+	if err != nil {
+		return nil, middleware.Internal("internal_error", "internal server error")
+	}
+	list, err := s.store.ListMine(ctx, userID, email)
 	if err != nil {
 		return nil, middleware.Internal("internal_error", "internal server error")
 	}
@@ -313,12 +342,13 @@ func (s *Service) Send(ctx context.Context, userID, role, id string) (Itinerary,
 	item.Status = "sent"
 	item.BusinessName = op.Name
 	payURL := s.public + "/pay/" + raw
-	html, err := appmail.RenderItinerary(mailData(item, payURL))
+	signupURL := s.pwa + "/signup?email=" + url.QueryEscape(item.CustomerEmail)
+	html, err := appmail.RenderItinerary(mailData(item, payURL, signupURL))
 	if err != nil {
 		_ = s.store.RevertSent(ctx, item.ID, s.now())
 		return Itinerary{}, middleware.Internal("internal_error", "internal server error")
 	}
-	text := fmt.Sprintf("%s sent itinerary %s.\nInvoice %s\n%s %s\nPay: %s\n", op.Name, item.Title, invoice, item.Currency, item.AmountDue, payURL)
+	text := fmt.Sprintf("%s sent itinerary %s.\nInvoice %s\n%s %s\nPay: %s\nCreate a VirungaPay account with this same email so this trip appears on Home: %s\n", op.Name, item.Title, invoice, item.Currency, item.AmountDue, payURL, signupURL)
 	if err := s.mail.Send(ctx, appmail.Message{
 		ToEmail: item.CustomerEmail, ToName: item.CustomerName,
 		Subject: "Itinerary " + invoice + " from " + op.Name,
@@ -368,8 +398,45 @@ func (s *Service) Pay(ctx context.Context, token string) (Itinerary, error) {
 	if err != nil {
 		return Itinerary{}, middleware.Internal("internal_error", "internal server error")
 	}
+	s.attachPayer(ctx, paid)
 	_ = s.sendReceipt(ctx, paid)
 	return paid, nil
+}
+
+// Assign links a paid itinerary to a tourist account so it shows on their Home.
+func (s *Service) Assign(ctx context.Context, userID, role, itineraryID, touristID string) (Itinerary, error) {
+	op, err := s.operator(ctx, userID, role)
+	if err != nil {
+		return Itinerary{}, err
+	}
+	item, err := s.store.Itinerary(ctx, op.OrganisationID, itineraryID)
+	if errors.Is(err, errNotFound) {
+		return Itinerary{}, middleware.NotFound("not_found", "that itinerary was not found")
+	}
+	if err != nil {
+		return Itinerary{}, middleware.Internal("internal_error", "internal server error")
+	}
+	if item.Status != "paid" {
+		return Itinerary{}, middleware.Unprocessable("not_paid", "assign the tourist after the itinerary is paid")
+	}
+	if _, err := s.store.TouristID(ctx, touristID); errors.Is(err, errNotFound) {
+		return Itinerary{}, middleware.NotFound("not_found", "that tourist account was not found")
+	} else if err != nil {
+		return Itinerary{}, middleware.Internal("internal_error", "internal server error")
+	}
+	if err := s.store.AssignTourist(ctx, item.ID, touristID, s.now()); err != nil {
+		return Itinerary{}, middleware.Internal("internal_error", "internal server error")
+	}
+	item.TouristUserID = touristID
+	return item, nil
+}
+
+func (s *Service) attachPayer(ctx context.Context, item Itinerary) {
+	touristID, err := s.store.TouristIDByEmail(ctx, item.CustomerEmail)
+	if err != nil {
+		return
+	}
+	_ = s.store.AssignTourist(ctx, item.ID, touristID, s.now())
 }
 
 func (s *Service) sendReceipt(ctx context.Context, item Itinerary) error {
@@ -515,7 +582,7 @@ func cleanLines(lines []string) []string {
 	return out
 }
 
-func mailData(item Itinerary, payURL string) appmail.ItineraryMail {
+func mailData(item Itinerary, payURL, signupURL string) appmail.ItineraryMail {
 	days := make([]appmail.ItineraryDay, 0, len(item.Days))
 	for _, day := range item.Days {
 		days = append(days, appmail.ItineraryDay{DayNumber: fmt.Sprintf("%d", day.DayNumber), Title: day.Title, Body: day.Body})
@@ -523,7 +590,7 @@ func mailData(item Itinerary, payURL string) appmail.ItineraryMail {
 	return appmail.ItineraryMail{
 		BusinessName: item.BusinessName, CustomerName: item.CustomerName, Title: item.Title, Summary: item.Summary,
 		StartsOn: item.StartsOn, EndsOn: item.EndsOn, PartySize: fmt.Sprintf("%d", item.PartySize),
-		Currency: item.Currency, Amount: item.AmountDue, InvoiceNumber: item.InvoiceNumber, PayURL: payURL,
+		Currency: item.Currency, Amount: item.AmountDue, InvoiceNumber: item.InvoiceNumber, PayURL: payURL, SignupURL: signupURL,
 		Days: days, Inclusions: item.Inclusions, Exclusions: item.Exclusions, Notes: item.Notes,
 	}
 }

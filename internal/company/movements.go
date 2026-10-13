@@ -588,6 +588,94 @@ func (s *Service) ListOperatorPayments(ctx context.Context, userID, role string)
 	}
 }
 
+// RenameWallet changes the label and username of a wallet the caller owns.
+// An empty name or username keeps the current value. A new username is the handle senders type.
+func (s *Service) RenameWallet(ctx context.Context, userID, role, walletID, name, username string) (Wallet, error) {
+	wallet, err := s.store.WalletByID(ctx, walletID)
+	if errors.Is(err, errNotFound) {
+		return Wallet{}, middleware.NotFound("wallet_not_found", "wallet was not found")
+	}
+	if err != nil {
+		return Wallet{}, middleware.Internal("internal_error", "internal server error")
+	}
+	switch wallet.Kind {
+	case "ova", "fee_fx", "fee_transaction":
+		return Wallet{}, middleware.NotFound("wallet_not_found", "wallet was not found")
+	}
+	owns, err := s.ownsWallet(ctx, userID, role, wallet)
+	if err != nil {
+		return Wallet{}, middleware.Internal("internal_error", "internal server error")
+	}
+	if !owns {
+		return Wallet{}, middleware.NotFound("wallet_not_found", "wallet was not found")
+	}
+	if wallet.Kind == walletVirungaPass {
+		name = wallet.Name
+		if strings.TrimSpace(name) == "" {
+			name = virungaPassName
+		}
+	} else if strings.TrimSpace(name) == "" && name != "" {
+		return Wallet{}, middleware.Invalid("invalid_request", "enter a wallet name up to 60 characters")
+	} else {
+		name = strings.TrimSpace(name)
+		if name == "" {
+			name = wallet.Name
+		}
+	}
+	if name == "" || len([]rune(name)) > 60 || strings.ContainsAny(name, "\r\n\t") {
+		return Wallet{}, middleware.Invalid("invalid_request", "enter a wallet name up to 60 characters")
+	}
+	if strings.TrimSpace(username) == "" && username != "" {
+		return Wallet{}, middleware.Invalid("invalid_request", "use at least 3 letters or numbers")
+	}
+	if strings.TrimSpace(username) == "" {
+		username = wallet.Username
+	} else {
+		var ok bool
+		username, ok = chosenUsername(username)
+		if !ok {
+			return Wallet{}, middleware.Invalid("invalid_request", "use at least 3 letters or numbers")
+		}
+		taken, _, err := s.store.FindByUsername(ctx, username)
+		if err == nil && taken.ID != wallet.ID {
+			return Wallet{}, middleware.Conflict("username_taken", "that username is already used")
+		}
+		if err != nil && !errors.Is(err, errNotFound) {
+			return Wallet{}, middleware.Internal("internal_error", "internal server error")
+		}
+	}
+	if name == wallet.Name && username == wallet.Username {
+		return wallet, nil
+	}
+	if err := s.store.RenameWallet(ctx, wallet.ID, name, username, s.now()); err != nil {
+		if errors.Is(err, errNotFound) {
+			return Wallet{}, middleware.NotFound("wallet_not_found", "wallet was not found")
+		}
+		return Wallet{}, middleware.Internal("internal_error", "internal server error")
+	}
+	wallet.Name = name
+	wallet.Username = username
+	return wallet, nil
+}
+
+func (s *Service) ownsWallet(ctx context.Context, userID, role string, wallet Wallet) (bool, error) {
+	switch role {
+	case auth.RoleOperatorOwner, auth.RoleForexBureauOwner:
+		member, err := s.store.Member(ctx, s.store.DB(), userID)
+		if errors.Is(err, errNotFound) {
+			return false, nil
+		}
+		if err != nil {
+			return false, err
+		}
+		return wallet.Organisation != "" && wallet.Organisation == member.OrganisationID, nil
+	case auth.RoleGuide, auth.RoleDriver, auth.RoleTourist:
+		return wallet.UserID != "" && wallet.UserID == userID, nil
+	default:
+		return false, nil
+	}
+}
+
 // MyWallets returns the personal wallets of a guide or driver, or the tourist VirungaPass Wallet.
 func (s *Service) MyWallets(ctx context.Context, userID, role string) ([]Wallet, error) {
 	if role != auth.RoleGuide && role != auth.RoleDriver && role != auth.RoleTourist {

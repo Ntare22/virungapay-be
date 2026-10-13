@@ -43,11 +43,34 @@ type Company struct {
 	Wallets             []Wallet `json:"wallets"`
 }
 
+// PersonWallet is a tourist, guide, or driver wallet, with the person who holds it.
+type PersonWallet struct {
+	ID           string `json:"id"`
+	Kind         string `json:"kind"`
+	Name         string `json:"name"`
+	Username     string `json:"username,omitempty"`
+	Currency     string `json:"currency"`
+	Balance      string `json:"balance"`
+	HolderName   string `json:"holder_name"`
+	HolderEmail  string `json:"holder_email"`
+	HolderRole   string `json:"holder_role"`
+	HolderStatus string `json:"holder_status"`
+}
+
+// TouristAccount is a tourist an operator can attach an itinerary to.
+type TouristAccount struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Username string `json:"username,omitempty"`
+}
+
 // Wallet is one currency account. Balance is the claim on money in that currency.
 type Wallet struct {
 	ID           string `json:"id"`
 	Kind         string `json:"kind,omitempty"`
 	Name         string `json:"name,omitempty"`
+	Username     string `json:"username,omitempty"`
 	Currency     string `json:"currency"`
 	Balance      string `json:"balance"`
 	Default      bool   `json:"is_default"`
@@ -228,6 +251,34 @@ type WalletRequest struct {
 	Currency string `json:"currency" binding:"required" example:"USD"`
 }
 
+// TopUpRequest adds money to the tourist VirungaPass Wallet from a bank card.
+// Only the last four digits are sent. The full card number stays on the phone.
+type TopUpRequest struct {
+	Amount string `json:"amount" binding:"required"`
+	Last4  string `json:"last4" binding:"required" example:"4242"`
+}
+
+// MobileMoneyRequest sends UGX from the tourist wallet to Airtel or MTN in Uganda.
+type MobileMoneyRequest struct {
+	Network string `json:"network" binding:"required" example:"mtn"`
+	Phone   string `json:"phone" binding:"required" example:"+256771234567"`
+	Amount  string `json:"amount" binding:"required"`
+}
+
+// OwnTipRequest sends money from the signed-in tourist to a wallet username.
+// Purpose is tip for a guide or driver, or service for a tour operator.
+type OwnTipRequest struct {
+	Username string `json:"username" binding:"required" example:"peter-ugx"`
+	Amount   string `json:"amount" binding:"required"`
+	Purpose  string `json:"purpose" example:"tip"`
+}
+
+// RenameWalletRequest updates the label and the username senders use to find a wallet.
+type RenameWalletRequest struct {
+	Name     string `json:"name" example:"Safari float"`
+	Username string `json:"username" example:"safari-float"`
+}
+
 // CreateRequest is the JSON body for creating a company.
 type CreateRequest struct {
 	Name        string `json:"name" binding:"required" example:"Kigezi Highland Safaris"`
@@ -241,6 +292,27 @@ type InviteRequest struct {
 	Email string `json:"email" binding:"required,email" example:"peter@example.com"`
 	Phone string `json:"phone" example:"+256700000001"`
 	Role  string `json:"role" binding:"required" example:"driver"`
+}
+
+// CrewMember is a guide or driver on the operator's company, with their duty wallet.
+type CrewMember struct {
+	UserID         string `json:"user_id"`
+	Name           string `json:"name"`
+	Email          string `json:"email"`
+	Phone          string `json:"phone,omitempty"`
+	Role           string `json:"role"`
+	Status         string `json:"status"`
+	WalletCurrency string `json:"wallet_currency"`
+	WalletBalance  string `json:"wallet_balance"`
+	Username       string `json:"username,omitempty"`
+}
+
+// WalletLookup is what a sender sees before money moves to a wallet.
+type WalletLookup struct {
+	Username string `json:"username"`
+	Name     string `json:"name"`
+	Currency string `json:"currency"`
+	Kind     string `json:"kind"`
 }
 
 // InviteResponse acknowledges an emailed invite. It does not include the token.

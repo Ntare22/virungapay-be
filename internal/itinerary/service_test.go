@@ -20,7 +20,7 @@ func TestSendCopiesNothingPricedAndPayOnce(t *testing.T) {
 	payer := &fakePayer{}
 	svc := NewService(store, payer, box, func(_ context.Context, fn func(tx *gorm.DB) error) error {
 		return fn(nil)
-	}, "http://app.test")
+	}, "http://app.test", "http://phone.test")
 	ctx := context.Background()
 	store.op = Operator{OrganisationID: "org-1", Name: "Kigezi Highland Safaris", Status: "approved", Type: "operator", Role: auth.RoleOperatorOwner}
 
@@ -53,9 +53,16 @@ func TestSendCopiesNothingPricedAndPayOnce(t *testing.T) {
 	require.True(t, strings.HasPrefix(sent.InvoiceNumber, "VP-"))
 	require.Contains(t, box.Messages[0].Text, sent.InvoiceNumber)
 	require.Contains(t, box.Messages[0].Text, "/pay/")
+	require.Contains(t, box.Messages[0].Text, "http://phone.test/signup?email=amelie%40example.com")
+	require.Contains(t, box.Messages[0].HTML, "Create a VirungaPay account")
 	require.NotContains(t, pkg.Title, "1240")
 
 	token := payToken(box.Messages[0].Text)
+	store.emails["tourist-1"] = "amelie@example.com"
+	before, err := svc.Mine(ctx, "tourist-1", auth.RoleTourist)
+	require.NoError(t, err)
+	require.Empty(t, before)
+
 	paid, err := svc.Pay(ctx, token)
 	require.NoError(t, err)
 	require.Equal(t, "paid", paid.Status)
@@ -71,6 +78,26 @@ func TestSendCopiesNothingPricedAndPayOnce(t *testing.T) {
 	require.True(t, strings.HasPrefix(box.Messages[1].Attachments[0].Filename, "VP-"))
 	require.True(t, strings.HasPrefix(string(box.Messages[1].Attachments[0].Content), "%PDF"))
 	require.Contains(t, string(box.Messages[1].Attachments[0].Content), sent.InvoiceNumber)
+
+	list, err := svc.Mine(ctx, "tourist-1", auth.RoleTourist)
+	require.NoError(t, err)
+	require.Len(t, list, 1)
+	require.Equal(t, "paid", list[0].Status)
+	require.Equal(t, item.Title, list[0].Title)
+	_, err = svc.Mine(ctx, "owner-1", auth.RoleOperatorOwner)
+	require.Error(t, err)
+
+	store.tourists["tourist-2"] = "other@example.com"
+	assigned, err := svc.Assign(ctx, "owner-1", auth.RoleOperatorOwner, item.ID, "tourist-2")
+	require.NoError(t, err)
+	require.Equal(t, "tourist-2", assigned.TouristUserID)
+	store.emails["tourist-2"] = "other@example.com"
+	moved, err := svc.Mine(ctx, "tourist-2", auth.RoleTourist)
+	require.NoError(t, err)
+	require.Len(t, moved, 1)
+	left, err := svc.Mine(ctx, "tourist-1", auth.RoleTourist)
+	require.NoError(t, err)
+	require.Empty(t, left)
 }
 
 type fakePayer struct {
@@ -102,11 +129,13 @@ type memStore struct {
 	inquiries  map[string]Inquiry
 	items      map[string]Itinerary
 	byToken    map[string]string
+	emails     map[string]string
+	tourists   map[string]string
 	invoiceSeq int
 }
 
 func newMem() *memStore {
-	return &memStore{packages: map[string]Package{}, inquiries: map[string]Inquiry{}, items: map[string]Itinerary{}, byToken: map[string]string{}}
+	return &memStore{packages: map[string]Package{}, inquiries: map[string]Inquiry{}, items: map[string]Itinerary{}, byToken: map[string]string{}, emails: map[string]string{}, tourists: map[string]string{}}
 }
 
 func (m *memStore) Operator(context.Context, string) (Operator, error) {
@@ -184,6 +213,50 @@ func (m *memStore) MarkPaid(_ context.Context, _ *gorm.DB, id string, at time.Ti
 	item.Status = "paid"
 	item.PaidAt = &at
 	m.items[id] = item
+	return nil
+}
+func (m *memStore) UserEmail(_ context.Context, userID string) (string, error) {
+	email := m.emails[userID]
+	if email == "" {
+		return "", errNotFound
+	}
+	return email, nil
+}
+func (m *memStore) ListMine(_ context.Context, userID, email string) ([]Itinerary, error) {
+	email = strings.ToLower(email)
+	list := []Itinerary{}
+	for _, item := range m.items {
+		if item.Status != "paid" {
+			continue
+		}
+		if item.TouristUserID == userID || (item.TouristUserID == "" && strings.ToLower(item.CustomerEmail) == email) {
+			list = append(list, item)
+		}
+	}
+	return list, nil
+}
+func (m *memStore) TouristID(_ context.Context, userID string) (string, error) {
+	if _, ok := m.tourists[userID]; !ok {
+		return "", errNotFound
+	}
+	return userID, nil
+}
+func (m *memStore) TouristIDByEmail(_ context.Context, email string) (string, error) {
+	email = strings.ToLower(email)
+	for id, value := range m.tourists {
+		if value == email {
+			return id, nil
+		}
+	}
+	return "", errNotFound
+}
+func (m *memStore) AssignTourist(_ context.Context, itineraryID, touristID string, _ time.Time) error {
+	item, ok := m.items[itineraryID]
+	if !ok || item.Status != "paid" {
+		return errNotFound
+	}
+	item.TouristUserID = touristID
+	m.items[itineraryID] = item
 	return nil
 }
 func (m *memStore) DB() *gorm.DB { return nil }

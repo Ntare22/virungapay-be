@@ -46,6 +46,8 @@ type Store interface {
 	FeeSchedule(ctx context.Context, db *gorm.DB, kind, currency string) (FeeSchedule, error)
 	SaveFeeSchedule(ctx context.Context, schedule FeeSchedule, actorID string, at time.Time) error
 	ListPlatformWallets(ctx context.Context) ([]Wallet, error)
+	ListPersonWallets(ctx context.Context) ([]PersonWallet, error)
+	ListTourists(ctx context.Context) ([]TouristAccount, error)
 	PlatformWallet(ctx context.Context, db *gorm.DB, kind, currency string) (Wallet, error)
 	PlatformWalletByID(ctx context.Context, walletID string) (Wallet, error)
 	ListMovements(ctx context.Context, walletID string) ([]Movement, error)
@@ -58,6 +60,10 @@ type Store interface {
 	ListWalletActivity(ctx context.Context, organisationID string) ([]WalletActivity, error)
 	ListPersonalActivity(ctx context.Context, userID string) ([]WalletActivity, error)
 	UserRole(ctx context.Context, userID string) (string, error)
+	ListCrew(ctx context.Context, organisationID string) ([]CrewMember, error)
+	FindByUsername(ctx context.Context, username string) (Wallet, string, error)
+	WalletByID(ctx context.Context, walletID string) (Wallet, error)
+	RenameWallet(ctx context.Context, walletID, name, username string, at time.Time) error
 	DB() *gorm.DB
 }
 
@@ -188,6 +194,9 @@ func (s *Service) Invite(ctx context.Context, userID, role string, in InviteInpu
 	}); err != nil {
 		return InviteResponse{}, middleware.Internal("internal_error", "internal server error")
 	}
+	if err := s.openCrewWallet(ctx, user.ID, in.Name); err != nil {
+		return InviteResponse{}, err
+	}
 	invite := Invite{
 		ID:             uuid.NewString(),
 		OrganisationID: member.OrganisationID,
@@ -211,6 +220,89 @@ func (s *Service) Invite(ctx context.Context, userID, role string, in InviteInpu
 		return InviteResponse{}, middleware.Unavailable("mail_unavailable", "email could not be sent")
 	}
 	return InviteResponse{UserID: user.ID, Email: user.Email, Role: user.Role, Status: auth.StatusInvited}, nil
+}
+
+// ListCrew returns the operator's guides and drivers. Each one has a UGX wallet.
+func (s *Service) ListCrew(ctx context.Context, userID, role string) ([]CrewMember, error) {
+	if role != auth.RoleOperatorOwner {
+		return nil, middleware.Forbidden("forbidden", "only an operator owner can view guides and drivers")
+	}
+	member, err := s.store.Member(ctx, s.store.DB(), userID)
+	if errors.Is(err, errNotFound) {
+		return nil, middleware.Unprocessable("company_required", "create a company before adding guides and drivers")
+	}
+	if err != nil {
+		return nil, middleware.Internal("internal_error", "internal server error")
+	}
+	list, err := s.store.ListCrew(ctx, member.OrganisationID)
+	if err != nil {
+		return nil, middleware.Internal("internal_error", "internal server error")
+	}
+	if list == nil {
+		list = []CrewMember{}
+	}
+	currency, ok := TouristLocalCurrency("")
+	if !ok {
+		return nil, middleware.Internal("internal_error", "internal server error")
+	}
+	for i := range list {
+		if list[i].WalletCurrency == currency && list[i].WalletBalance != "" {
+			continue
+		}
+		if err := s.openCrewWallet(ctx, list[i].UserID, list[i].Name); err != nil {
+			return nil, err
+		}
+		list[i].WalletCurrency = currency
+		if list[i].WalletBalance == "" {
+			list[i].WalletBalance = "0.00"
+		}
+	}
+	return list, nil
+}
+
+// LookupWallet confirms a username belongs to a wallet a sender can pay.
+func (s *Service) LookupWallet(ctx context.Context, role, username string) (WalletLookup, error) {
+	switch role {
+	case auth.RoleOperatorOwner, auth.RoleGuide, auth.RoleDriver, auth.RoleTourist:
+	default:
+		return WalletLookup{}, middleware.Forbidden("forbidden", "you cannot look up a wallet")
+	}
+	username = normalizeUsername(username)
+	if username == "" {
+		return WalletLookup{}, middleware.Invalid("invalid_request", "enter a wallet username")
+	}
+	wallet, name, err := s.store.FindByUsername(ctx, username)
+	if errors.Is(err, errNotFound) || (err == nil && (wallet.Kind == "ova" || strings.HasPrefix(wallet.Kind, "fee_"))) {
+		return WalletLookup{}, middleware.NotFound("wallet_not_found", "no wallet uses that username")
+	}
+	if err != nil {
+		return WalletLookup{}, middleware.Internal("internal_error", "internal server error")
+	}
+	if name == "" {
+		name = wallet.Name
+	}
+	return WalletLookup{Username: wallet.Username, Name: name, Currency: wallet.Currency, Kind: wallet.Kind}, nil
+}
+
+func (s *Service) openCrewWallet(ctx context.Context, userID, name string) error {
+	currency, ok := TouristLocalCurrency("")
+	if !ok {
+		return middleware.Internal("internal_error", "internal server error")
+	}
+	_, err := s.store.PersonalWallet(ctx, s.store.DB(), userID, currency)
+	if err == nil {
+		return nil
+	}
+	if !errors.Is(err, errNotFound) {
+		return middleware.Internal("internal_error", "internal server error")
+	}
+	created := Wallet{
+		ID: uuid.NewString(), Kind: "personal", Name: strings.TrimSpace(name), Currency: currency, Balance: "0.00", Default: true, UserID: userID,
+	}
+	if err := s.store.InsertWallet(ctx, s.store.DB(), created, s.now()); err != nil {
+		return middleware.Internal("internal_error", "internal server error")
+	}
+	return nil
 }
 
 func (r *Repository) DB() *gorm.DB { return r.db }

@@ -93,6 +93,34 @@ func (s *Service) ListBusinesses(ctx context.Context, role string) (BusinessList
 	return BusinessList{Businesses: businesses}, nil
 }
 
+func (s *Service) ListPersonWallets(ctx context.Context, role string) ([]PersonWallet, error) {
+	if !staff(role) {
+		return nil, middleware.Forbidden("forbidden", "you cannot use this route")
+	}
+	wallets, err := s.store.ListPersonWallets(ctx)
+	if err != nil {
+		return nil, middleware.Internal("internal_error", "internal server error")
+	}
+	if wallets == nil {
+		wallets = []PersonWallet{}
+	}
+	return wallets, nil
+}
+
+func (s *Service) ListTourists(ctx context.Context, role string) ([]TouristAccount, error) {
+	if role != auth.RoleOperatorOwner {
+		return nil, middleware.Forbidden("forbidden", "only a tour operator can attach an itinerary")
+	}
+	list, err := s.store.ListTourists(ctx)
+	if err != nil {
+		return nil, middleware.Internal("internal_error", "internal server error")
+	}
+	if list == nil {
+		list = []TouristAccount{}
+	}
+	return list, nil
+}
+
 func (s *Service) Approve(ctx context.Context, actorID, role, organisationID string) (Business, error) {
 	if !staff(role) {
 		return Business{}, middleware.Forbidden("forbidden", "you cannot use this route")

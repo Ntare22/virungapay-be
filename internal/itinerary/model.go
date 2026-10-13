@@ -52,6 +52,7 @@ type Itinerary struct {
 	AmountDue     string     `json:"amount_due"`
 	InvoiceNumber string     `json:"invoice_number,omitempty"`
 	Status        string     `json:"status"`
+	TouristUserID string     `json:"tourist_user_id,omitempty"`
 	BusinessName  string     `json:"business_name,omitempty"`
 	Days          []Day      `json:"days"`
 	Inclusions    []string   `json:"inclusions"`

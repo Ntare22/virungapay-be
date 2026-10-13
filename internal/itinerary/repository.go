@@ -213,6 +213,7 @@ type itineraryRow struct {
 	AmountDue      string `gorm:"type:numeric(20,2)"`
 	InvoiceNumber  *string
 	PayTokenHash   *string
+	TouristUserID  *string
 	Status         string
 	SentAt         *time.Time
 	PaidAt         *time.Time
@@ -237,6 +238,82 @@ func (r *Repository) ListItineraries(ctx context.Context, organisationID string)
 		list = append(list, item)
 	}
 	return list, nil
+}
+
+func (r *Repository) UserEmail(ctx context.Context, userID string) (string, error) {
+	var email string
+	err := r.db.WithContext(ctx).Raw(`SELECT email FROM users WHERE id = ?`, userID).Scan(&email).Error
+	if err != nil {
+		return "", err
+	}
+	email = strings.TrimSpace(email)
+	if email == "" {
+		return "", errNotFound
+	}
+	return email, nil
+}
+
+func (r *Repository) ListMine(ctx context.Context, userID, email string) ([]Itinerary, error) {
+	var rows []itineraryRow
+	err := r.db.WithContext(ctx).
+		Where("status = ? AND (tourist_user_id = ? OR (tourist_user_id IS NULL AND lower(customer_email) = ?))", "paid", userID, strings.ToLower(strings.TrimSpace(email))).
+		Order("paid_at DESC NULLS LAST, created_at DESC").
+		Find(&rows).Error
+	if err != nil {
+		return nil, err
+	}
+	names := map[string]string{}
+	list := make([]Itinerary, 0, len(rows))
+	for _, row := range rows {
+		name, ok := names[row.OrganisationID]
+		if !ok {
+			_ = r.db.WithContext(ctx).Raw(`SELECT name FROM organisations WHERE id = ?`, row.OrganisationID).Scan(&name).Error
+			names[row.OrganisationID] = name
+		}
+		item, err := r.itineraryFrom(ctx, r.db, row, name)
+		if err != nil {
+			return nil, err
+		}
+		list = append(list, item)
+	}
+	return list, nil
+}
+
+func (r *Repository) TouristID(ctx context.Context, userID string) (string, error) {
+	var id string
+	err := r.db.WithContext(ctx).Raw(`SELECT id FROM users WHERE id = ? AND role = 'tourist'`, userID).Scan(&id).Error
+	if err != nil {
+		return "", err
+	}
+	if id == "" {
+		return "", errNotFound
+	}
+	return id, nil
+}
+
+func (r *Repository) TouristIDByEmail(ctx context.Context, email string) (string, error) {
+	var id string
+	err := r.db.WithContext(ctx).Raw(`SELECT id FROM users WHERE role = 'tourist' AND lower(email) = ?`, strings.ToLower(strings.TrimSpace(email))).Scan(&id).Error
+	if err != nil {
+		return "", err
+	}
+	if id == "" {
+		return "", errNotFound
+	}
+	return id, nil
+}
+
+func (r *Repository) AssignTourist(ctx context.Context, itineraryID, touristID string, at time.Time) error {
+	result := r.db.WithContext(ctx).Model(&itineraryRow{}).Where("id = ? AND status = ?", itineraryID, "paid").Updates(map[string]any{
+		"tourist_user_id": touristID, "updated_at": at,
+	})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return errNotFound
+	}
+	return nil
 }
 
 func (r *Repository) Itinerary(ctx context.Context, organisationID, id string) (Itinerary, error) {
@@ -359,6 +436,9 @@ func (r *Repository) itineraryFrom(ctx context.Context, db *gorm.DB, row itinera
 		Title: row.Title, Summary: row.Summary, Currency: row.Currency, AmountDue: row.AmountDue,
 		Status: row.Status, BusinessName: business, Days: days, Inclusions: inclusions, Exclusions: exclusions, Notes: notes,
 		Organisation: row.OrganisationID, SentAt: row.SentAt, PaidAt: row.PaidAt,
+	}
+	if row.TouristUserID != nil {
+		item.TouristUserID = *row.TouristUserID
 	}
 	if row.PackageID != nil {
 		item.PackageID = *row.PackageID

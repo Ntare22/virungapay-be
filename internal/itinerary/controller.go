@@ -2,6 +2,7 @@ package itinerary
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 
@@ -85,6 +86,15 @@ func (h *Controller) GetItinerary(c *gin.Context) {
 	c.JSON(http.StatusOK, item)
 }
 
+func (h *Controller) Mine(c *gin.Context) {
+	list, err := h.svc.Mine(c.Request.Context(), middleware.UserID(c), middleware.Role(c))
+	if err != nil {
+		middleware.WriteError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"itineraries": list})
+}
+
 func (h *Controller) SaveItinerary(c *gin.Context) {
 	var item Itinerary
 	if err := c.ShouldBindJSON(&item); err != nil {
@@ -108,6 +118,22 @@ func (h *Controller) SaveItinerary(c *gin.Context) {
 
 func (h *Controller) Send(c *gin.Context) {
 	item, err := h.svc.Send(c.Request.Context(), middleware.UserID(c), middleware.Role(c), c.Param("id"))
+	if err != nil {
+		middleware.WriteError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, item)
+}
+
+func (h *Controller) Assign(c *gin.Context) {
+	var req struct {
+		TouristID string `json:"tourist_id"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil || strings.TrimSpace(req.TouristID) == "" {
+		middleware.WriteError(c, middleware.Invalid("invalid_request", "choose a tourist account"))
+		return
+	}
+	item, err := h.svc.Assign(c.Request.Context(), middleware.UserID(c), middleware.Role(c), c.Param("id"), req.TouristID)
 	if err != nil {
 		middleware.WriteError(c, err)
 		return

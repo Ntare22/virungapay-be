@@ -29,6 +29,7 @@ type ItineraryMail struct {
 	Amount        string
 	InvoiceNumber string
 	PayURL        string
+	SignupURL     string
 	Days          []ItineraryDay
 	Inclusions    []string
 	Exclusions    []string
@@ -44,7 +45,7 @@ func RenderItinerary(data ItineraryMail) (string, error) {
 	return raymond.Render(itineraryTemplate, map[string]any{
 		"businessName": data.BusinessName, "customerName": data.CustomerName, "title": data.Title,
 		"summary": data.Summary, "startsOn": data.StartsOn, "endsOn": data.EndsOn, "partySize": data.PartySize,
-		"currency": data.Currency, "amount": data.Amount, "invoiceNumber": data.InvoiceNumber, "payURL": data.PayURL,
+		"currency": data.Currency, "amount": data.Amount, "invoiceNumber": data.InvoiceNumber, "payURL": data.PayURL, "signupURL": data.SignupURL,
 		"days": days, "inclusions": data.Inclusions, "exclusions": data.Exclusions,
 	})
 }

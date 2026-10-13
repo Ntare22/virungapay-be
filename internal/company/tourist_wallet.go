@@ -37,8 +37,16 @@ func (r *Repository) OpenTouristWallet(ctx context.Context, userID string) error
 	if !ok {
 		return errNotFound
 	}
-	return r.InsertWallet(ctx, r.db, Wallet{
+	if err := r.InsertWallet(ctx, r.db, Wallet{
 		ID: uuid.NewString(), Kind: walletVirungaPass, Name: virungaPassName,
 		Currency: currency, Balance: "0.00", Default: true, UserID: userID,
-	}, time.Now().UTC())
+	}, time.Now().UTC()); err != nil {
+		return err
+	}
+	return r.db.WithContext(ctx).Exec(`
+UPDATE itineraries
+SET tourist_user_id = ?, updated_at = NOW()
+WHERE status = 'paid' AND tourist_user_id IS NULL
+  AND lower(customer_email) = (SELECT lower(email) FROM users WHERE id = ?)
+`, userID, userID).Error
 }

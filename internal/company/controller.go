@@ -130,6 +130,42 @@ func (h *Controller) Invite(c *gin.Context) {
 	c.JSON(http.StatusCreated, invited)
 }
 
+func (h *Controller) LookupWallet(c *gin.Context) {
+	found, err := h.svc.LookupWallet(c.Request.Context(), middleware.Role(c), c.Query("username"))
+	if err != nil {
+		middleware.WriteError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, found)
+}
+
+func (h *Controller) Crew(c *gin.Context) {
+	list, err := h.svc.ListCrew(c.Request.Context(), middleware.UserID(c), middleware.Role(c))
+	if err != nil {
+		middleware.WriteError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"crew": list})
+}
+
+func (h *Controller) ListPersonWallets(c *gin.Context) {
+	list, err := h.svc.ListPersonWallets(c.Request.Context(), middleware.Role(c))
+	if err != nil {
+		middleware.WriteError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"wallets": list})
+}
+
+func (h *Controller) ListTourists(c *gin.Context) {
+	list, err := h.svc.ListTourists(c.Request.Context(), middleware.Role(c))
+	if err != nil {
+		middleware.WriteError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"tourists": list})
+}
+
 func (h *Controller) ListBusinesses(c *gin.Context) {
 	list, err := h.svc.ListBusinesses(c.Request.Context(), middleware.Role(c))
 	if err != nil {
@@ -312,6 +348,20 @@ func (h *Controller) MoveWallets(c *gin.Context) {
 	c.JSON(http.StatusOK, company)
 }
 
+func (h *Controller) RenameWallet(c *gin.Context) {
+	var req RenameWalletRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		middleware.WriteError(c, middleware.Invalid("invalid_request", "request body is invalid"))
+		return
+	}
+	wallet, err := h.svc.RenameWallet(c.Request.Context(), middleware.UserID(c), middleware.Role(c), c.Param("id"), req.Name, req.Username)
+	if err != nil {
+		middleware.WriteError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, wallet)
+}
+
 func (h *Controller) RequestWallet(c *gin.Context) {
 	var req WalletRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -448,6 +498,45 @@ func (h *Controller) Withdraw(c *gin.Context) {
 		return
 	}
 	if err := h.svc.RecordWithdrawal(c.Request.Context(), middleware.Role(c), req.BusinessID, req.BureauID, req.Currency, req.Amount); err != nil {
+		middleware.WriteError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"status": "recorded"})
+}
+
+func (h *Controller) TopUp(c *gin.Context) {
+	var req TopUpRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		middleware.WriteError(c, middleware.Invalid("invalid_request", "request body is invalid"))
+		return
+	}
+	if err := h.svc.TopUpCard(c.Request.Context(), middleware.UserID(c), middleware.Role(c), req.Amount, req.Last4); err != nil {
+		middleware.WriteError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"status": "recorded"})
+}
+
+func (h *Controller) MobileMoney(c *gin.Context) {
+	var req MobileMoneyRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		middleware.WriteError(c, middleware.Invalid("invalid_request", "request body is invalid"))
+		return
+	}
+	if err := h.svc.SendMobileMoney(c.Request.Context(), middleware.UserID(c), middleware.Role(c), req.Network, req.Phone, req.Amount); err != nil {
+		middleware.WriteError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"status": "recorded"})
+}
+
+func (h *Controller) SendTip(c *gin.Context) {
+	var req OwnTipRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		middleware.WriteError(c, middleware.Invalid("invalid_request", "request body is invalid"))
+		return
+	}
+	if err := h.svc.TipCrew(c.Request.Context(), middleware.UserID(c), middleware.Role(c), req.Username, req.Amount, req.Purpose); err != nil {
 		middleware.WriteError(c, err)
 		return
 	}

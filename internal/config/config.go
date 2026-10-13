@@ -36,6 +36,7 @@ type MailConfig struct {
 	SecretKey string
 	From      string
 	PublicURL string
+	PWAURL    string
 }
 
 // DatabaseConfig is the Postgres pool configuration.
@@ -102,6 +103,7 @@ func Load() (Config, error) {
 			SecretKey: os.Getenv("MAILJET_SECRET_KEY"),
 			From:      getenv("MAIL_FROM", "no-reply@virungapay.demo"),
 			PublicURL: strings.TrimRight(getenv("APP_PUBLIC_URL", "http://localhost:5173"), "/"),
+			PWAURL:    strings.TrimRight(getenv("APP_PWA_URL", "http://localhost:3001"), "/"),
 		},
 		Staff: StaffConfig{
 			Name:     getenv("ADMIN_NAME", "VirungaPay Admin"),
