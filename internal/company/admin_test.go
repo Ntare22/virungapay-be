@@ -58,34 +58,6 @@ func TestApproveOpensUGXAndUSDCanBecomeDefault(t *testing.T) {
 	}
 }
 
-func TestOperatorCanRequestAEurWallet(t *testing.T) {
-	store := newMemCompany()
-	svc := NewService(store, &memRegistrar{}, &mail.Recorder{}, func(_ context.Context, fn func(tx *gorm.DB) error) error {
-		return fn(nil)
-	}, "http://app.test")
-	ctx := context.Background()
-	created, err := svc.Create(ctx, "owner-1", auth.RoleOperatorOwner, CreateInput{Name: "Jims Travels", Country: "UG"})
-	require.NoError(t, err)
-	_, err = svc.Approve(ctx, "staff-1", auth.RoleVASuperadmin, created.ID)
-	require.NoError(t, err)
-
-	_, err = svc.RequestWallet(ctx, "owner-1", auth.RoleGuide, "EUR")
-	require.Error(t, err)
-
-	opened, err := svc.RequestWallet(ctx, "owner-1", auth.RoleOperatorOwner, "EUR")
-	require.NoError(t, err)
-	var currencies []string
-	for _, wallet := range opened.Wallets {
-		currencies = append(currencies, wallet.Currency)
-	}
-	require.ElementsMatch(t, []string{"UGX", "EUR"}, currencies)
-
-	_, err = svc.RequestWallet(ctx, "owner-1", auth.RoleOperatorOwner, "EUR")
-	require.Error(t, err)
-	_, err = svc.RequestWallet(ctx, "owner-1", auth.RoleOperatorOwner, "USD")
-	require.Error(t, err)
-}
-
 func TestOnlyStaffCanSetTheDaysTariff(t *testing.T) {
 	store := newMemCompany()
 	svc := NewService(store, &memRegistrar{}, &mail.Recorder{}, func(_ context.Context, fn func(tx *gorm.DB) error) error {
@@ -101,28 +73,19 @@ func TestOnlyStaffCanSetTheDaysTariff(t *testing.T) {
 	require.Equal(t, "USD/UGX", tariff.Pair)
 	require.Equal(t, "3737.00000000", tariff.CustomerRate)
 
-	euro, err := svc.SetTariff(ctx, "staff-1", auth.RoleVAFinance, "EUR/UGX", "4000", 50)
-	require.NoError(t, err)
-	require.Equal(t, "4020.00000000", euro.CustomerRate)
-
 	stored := store.tariffs["USD/UGX"]
 	replaced, err := svc.SetTariff(ctx, "staff-1", auth.RoleVAFinance, "USD/UGX", "3800", 0)
 	require.NoError(t, err)
 	require.Equal(t, stored.QuoteOn, replaced.QuoteOn)
 	require.Equal(t, "3800.00000000", replaced.CustomerRate)
-	require.Equal(t, "4020.00000000", store.tariffs["EUR/UGX"].CustomerRate)
 
 	listed, err := svc.TodayTariffs(ctx, auth.RoleOperatorOwner)
 	require.NoError(t, err)
-	require.Equal(t, []string{"USD/UGX", "EUR/UGX"}, []string{listed[0].Pair, listed[1].Pair})
+	require.Equal(t, "USD/UGX", listed[0].Pair)
+	require.Equal(t, "3800.00000000", listed[0].CustomerRate)
 
-	older := store.tariffs["EUR/UGX"]
-	older.QuoteOn = "2020-01-01"
-	store.tariffs["EUR/UGX"] = older
-	listed, err = svc.TodayTariffs(ctx, auth.RoleOperatorOwner)
-	require.NoError(t, err)
-	require.Equal(t, "2020-01-01", listed[1].QuoteOn)
-	require.Equal(t, "4020.00000000", listed[1].CustomerRate)
+	_, err = svc.SetTariff(ctx, "staff-1", auth.RoleVAFinance, "GBP/UGX", "4000", 50)
+	require.Error(t, err)
 }
 
 func TestStaffCanAddAForexBureau(t *testing.T) {

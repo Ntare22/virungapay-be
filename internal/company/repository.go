@@ -320,7 +320,7 @@ func (r *Repository) Tariffs(ctx context.Context) ([]Tariff, error) {
 	err := r.db.WithContext(ctx).Raw(`
 SELECT DISTINCT ON (pair) id, pair, quote_on, integrator_rate::text AS integrator_rate, markup_bps, customer_rate::text AS customer_rate, set_by, created_at, updated_at
 FROM fx_rates
-WHERE pair IN ('USD/UGX', 'EUR/UGX')
+WHERE pair IN ('USD/UGX')
 ORDER BY pair, quote_on DESC
 `).Scan(&rows).Error
 	if err != nil {

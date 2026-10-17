@@ -16,7 +16,6 @@ import (
 )
 
 const pairUSDUGX = "USD/UGX"
-const pairEURUGX = "EUR/UGX"
 
 func (s *Service) ListBureaus(ctx context.Context, role string) (BusinessList, error) {
 	if !staff(role) {
@@ -185,8 +184,8 @@ func (s *Service) OpenWallet(ctx context.Context, actorID, role, organisationID,
 	if !staff(role) {
 		return Business{}, middleware.Forbidden("forbidden", "you cannot use this route")
 	}
-	if strings.ToUpper(strings.TrimSpace(currency)) != "USD" && strings.ToUpper(strings.TrimSpace(currency)) != "EUR" {
-		return Business{}, middleware.Invalid("invalid_request", "only a USD or EUR wallet can be opened here")
+	if strings.ToUpper(strings.TrimSpace(currency)) != "USD" {
+		return Business{}, middleware.Invalid("invalid_request", "only a USD wallet can be opened here")
 	}
 	currency = strings.ToUpper(strings.TrimSpace(currency))
 	current, err := s.store.Company(ctx, organisationID)
@@ -219,46 +218,6 @@ func (s *Service) OpenWallet(ctx context.Context, actorID, role, organisationID,
 		return Business{}, middleware.Internal("internal_error", "internal server error")
 	}
 	return s.business(ctx, organisationID)
-}
-
-// RequestWallet opens a EUR wallet on the caller's approved tour operator.
-func (s *Service) RequestWallet(ctx context.Context, userID, role, currency string) (Company, error) {
-	if role != auth.RoleOperatorOwner {
-		return Company{}, middleware.Forbidden("forbidden", "only a tour operator can request a wallet")
-	}
-	currency = strings.ToUpper(strings.TrimSpace(currency))
-	if currency != "EUR" {
-		return Company{}, middleware.Invalid("invalid_request", "you can request a EUR wallet")
-	}
-	member, err := s.store.Member(ctx, s.store.DB(), userID)
-	if errors.Is(err, errNotFound) {
-		return Company{}, middleware.NotFound("company_not_found", "create a company first")
-	}
-	if err != nil {
-		return Company{}, middleware.Internal("internal_error", "internal server error")
-	}
-	current, err := s.store.Company(ctx, member.OrganisationID)
-	if err != nil {
-		return Company{}, middleware.Internal("internal_error", "internal server error")
-	}
-	if current.Status != "approved" || current.Type == "forex_bureau" {
-		return Company{}, middleware.Unprocessable("business_not_approved", "approve the business before requesting a EUR wallet")
-	}
-	wallets, err := s.store.Wallets(ctx, s.store.DB(), current.ID)
-	if err != nil {
-		return Company{}, middleware.Internal("internal_error", "internal server error")
-	}
-	for _, wallet := range wallets {
-		if wallet.Currency == currency {
-			return Company{}, middleware.Conflict("wallet_exists", "this business already has a EUR wallet")
-		}
-	}
-	if err := s.store.InsertWallet(ctx, s.store.DB(), Wallet{
-		ID: uuid.NewString(), Kind: "operator", Currency: currency, Organisation: current.ID, CreatedBy: userID,
-	}, s.now()); err != nil {
-		return Company{}, middleware.Internal("internal_error", "internal server error")
-	}
-	return s.withWallets(ctx, current)
 }
 
 func (s *Service) SetDefaultWallet(ctx context.Context, role, organisationID, walletID string) (Business, error) {
@@ -312,8 +271,8 @@ func (s *Service) SetTariff(ctx context.Context, actorID, role, pair, integrator
 	if !staff(role) {
 		return Tariff{}, middleware.Forbidden("forbidden", "you cannot use this route")
 	}
-	if pair != pairUSDUGX && pair != pairEURUGX {
-		return Tariff{}, middleware.Invalid("invalid_request", "choose USD/UGX or EUR/UGX")
+	if pair != pairUSDUGX {
+		return Tariff{}, middleware.Invalid("invalid_request", "choose USD/UGX")
 	}
 	if markupBps < 0 {
 		return Tariff{}, middleware.Invalid("invalid_request", "markup cannot be negative")
@@ -374,8 +333,8 @@ func staff(role string) bool {
 }
 
 func orderTariffs(tariffs []Tariff) []Tariff {
-	ordered := make([]Tariff, 0, 2)
-	for _, pair := range []string{pairUSDUGX, pairEURUGX} {
+	ordered := make([]Tariff, 0, 1)
+	for _, pair := range []string{pairUSDUGX} {
 		for _, tariff := range tariffs {
 			if tariff.Pair == pair {
 				ordered = append(ordered, tariff)

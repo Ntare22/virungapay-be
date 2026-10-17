@@ -1,6 +1,7 @@
 package company
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -362,20 +363,6 @@ func (h *Controller) RenameWallet(c *gin.Context) {
 	c.JSON(http.StatusOK, wallet)
 }
 
-func (h *Controller) RequestWallet(c *gin.Context) {
-	var req WalletRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		middleware.WriteError(c, middleware.Invalid("invalid_request", "request body is invalid"))
-		return
-	}
-	company, err := h.svc.RequestWallet(c.Request.Context(), middleware.UserID(c), middleware.Role(c), req.Currency)
-	if err != nil {
-		middleware.WriteError(c, err)
-		return
-	}
-	c.JSON(http.StatusCreated, company)
-}
-
 func (h *Controller) Transactions(c *gin.Context) {
 	list, err := h.svc.ListTransactions(c.Request.Context(), middleware.Role(c))
 	if err != nil {
@@ -424,6 +411,67 @@ func (h *Controller) WalletStatement(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"wallet": wallet, "movements": lines})
+}
+
+func (h *Controller) Statement(c *gin.Context) {
+	if c.Query("format") != "pdf" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"code": "invalid_request", "message": "choose a PDF statement"}})
+		return
+	}
+	wallet, lines, err := h.svc.Statement(c.Request.Context(), middleware.UserID(c), middleware.Role(c), c.Param("id"))
+	if err != nil {
+		middleware.WriteError(c, err)
+		return
+	}
+	rows := make([]mail.StatementRow, 0, len(lines))
+	for _, line := range lines {
+		row := mail.StatementRow{When: line.CreatedAt.UTC().Format("2 Jan 2006 15:04"), Kind: statementKind(line.Kind, line.Direction), Balance: line.RunningBalance}
+		if line.Direction == "out" {
+			row.Out = line.Amount
+		} else {
+			row.In = line.Amount
+		}
+		rows = append(rows, row)
+	}
+	name := wallet.Name
+	if name == "" {
+		name = wallet.Currency + " wallet"
+	}
+	pdf := mail.StatementPDF(mail.Statement{
+		Title: name, Currency: wallet.Currency, Balance: wallet.Balance,
+		Generated: time.Now().UTC().Format("2 Jan 2006 15:04 UTC"), Rows: rows,
+	})
+	c.Header("Content-Disposition", fmt.Sprintf(`attachment; filename="%s-statement.pdf"`, wallet.Currency))
+	c.Data(http.StatusOK, "application/pdf", pdf)
+}
+
+func (h *Controller) CompanyStatement(c *gin.Context) {
+	name, wallets, groups, err := h.svc.CompanyStatement(c.Request.Context(), middleware.UserID(c), middleware.Role(c))
+	if err != nil {
+		middleware.WriteError(c, err)
+		return
+	}
+	sections := make([]mail.Statement, 0, len(wallets))
+	for i, wallet := range wallets {
+		rows := make([]mail.StatementRow, 0, len(groups[i]))
+		for _, line := range groups[i] {
+			row := mail.StatementRow{When: line.CreatedAt.UTC().Format("2 Jan 2006 15:04"), Kind: statementKind(line.Kind, line.Direction), Balance: line.RunningBalance}
+			if line.Direction == "out" {
+				row.Out = line.Amount
+			} else {
+				row.In = line.Amount
+			}
+			rows = append(rows, row)
+		}
+		title := wallet.Name
+		if title == "" {
+			title = wallet.Currency + " wallet"
+		}
+		sections = append(sections, mail.Statement{Title: title, Currency: wallet.Currency, Balance: wallet.Balance, Rows: rows})
+	}
+	pdf := mail.WalletsStatementPDF(name, time.Now().UTC().Format("2 Jan 2006 15:04 UTC"), sections)
+	c.Header("Content-Disposition", `attachment; filename="VirungaPay-statement.pdf"`)
+	c.Data(http.StatusOK, "application/pdf", pdf)
 }
 
 func statementKind(kind, direction string) string {

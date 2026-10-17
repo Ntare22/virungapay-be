@@ -276,7 +276,7 @@ func (m *memCompany) SaveFeeSchedule(_ context.Context, schedule FeeSchedule, _ 
 }
 
 func (m *memCompany) ListPersonWallets(context.Context) ([]PersonWallet, error) { return nil, nil }
-func (m *memCompany) ListTourists(context.Context) ([]TouristAccount, error) { return nil, nil }
+func (m *memCompany) ListTourists(context.Context) ([]TouristAccount, error)    { return nil, nil }
 func (m *memCompany) ListPlatformWallets(context.Context) ([]Wallet, error) {
 	wallets := []Wallet{}
 	for _, wallet := range m.platform {
@@ -485,6 +485,41 @@ func TestTouristStatementKeepsARunningBalance(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestOperatorStatementCoversEachWallet(t *testing.T) {
+	store := newMemCompany()
+	store.members["owner-1"] = Member{OrganisationID: "org-1", UserID: "owner-1", Role: auth.RoleOperatorOwner}
+	store.orgs["org-1"] = Company{ID: "org-1", Name: "Kigezi Highland Safaris", Status: "approved", Type: "operator"}
+	store.wallets["org-1"] = []Wallet{
+		{ID: "usd", Name: "Dollar float", Currency: "USD", Balance: "5.00", Organisation: "org-1"},
+		{ID: "ugx", Name: "Shilling float", Currency: "UGX", Balance: "100.00", Organisation: "org-1"},
+	}
+	store.movements = []Movement{
+		{ID: "m1", WalletID: "ugx", Kind: "collection", Direction: "in", Amount: "100.00", Currency: "UGX", CreatedAt: time.Date(2026, 10, 1, 9, 0, 0, 0, time.UTC)},
+	}
+	svc := NewService(store, &memRegistrar{}, &mail.Recorder{}, func(_ context.Context, fn func(tx *gorm.DB) error) error {
+		return fn(nil)
+	}, "http://app.test")
+	ctx := context.Background()
+
+	name, wallets, groups, err := svc.CompanyStatement(ctx, "owner-1", auth.RoleOperatorOwner)
+	require.NoError(t, err)
+	require.Equal(t, "Kigezi Highland Safaris", name)
+	require.Equal(t, []string{"UGX", "USD"}, []string{wallets[0].Currency, wallets[1].Currency})
+	require.Len(t, groups[0], 1)
+	require.Equal(t, "100.00", groups[0][0].RunningBalance)
+	require.Empty(t, groups[1])
+	_, _, _, err = svc.CompanyStatement(ctx, "tourist-1", auth.RoleTourist)
+	require.Error(t, err)
+
+	chosen, lines, err := svc.Statement(ctx, "owner-1", auth.RoleOperatorOwner, "ugx")
+	require.NoError(t, err)
+	require.Equal(t, "UGX", chosen.Currency)
+	require.Len(t, lines, 1)
+	require.Equal(t, "100.00", lines[0].RunningBalance)
+	_, _, err = svc.Statement(ctx, "tourist-1", auth.RoleTourist, "ugx")
+	require.Error(t, err)
+}
+
 func TestTouristGetsOneVirungaPassWallet(t *testing.T) {
 	store := newMemCompany()
 	svc := NewService(store, &memRegistrar{}, &mail.Recorder{}, func(_ context.Context, fn func(tx *gorm.DB) error) error {
@@ -530,9 +565,9 @@ func TestTipUsesTheVirungaPassWallet(t *testing.T) {
 	}, "http://app.test")
 	ctx := context.Background()
 
-	err := svc.RecordTip(ctx, auth.RoleVASuperadmin, "tourist-1", "guide-1", "EUR", "10")
+	err := svc.RecordTip(ctx, auth.RoleVASuperadmin, "tourist-1", "guide-1", "GBP", "10")
 	require.Error(t, err)
-	_, exists := store.personal["tourist-1/EUR"]
+	_, exists := store.personal["tourist-1/GBP"]
 	require.False(t, exists)
 
 	require.NoError(t, svc.RecordTip(ctx, auth.RoleVASuperadmin, "tourist-1", "guide-1", "UGX", "1000"))

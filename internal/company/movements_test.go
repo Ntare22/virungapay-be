@@ -65,8 +65,8 @@ func TestMoveBetweenOperatorWalletsUsesTheStandingRate(t *testing.T) {
 	require.NoError(t, err)
 	_, err = svc.OpenWallet(ctx, "staff-1", auth.RoleVASuperadmin, created.ID, "USD")
 	require.NoError(t, err)
-	_, err = svc.OpenWallet(ctx, "staff-1", auth.RoleVASuperadmin, created.ID, "EUR")
-	require.NoError(t, err)
+	_, err = svc.OpenWallet(ctx, "staff-1", auth.RoleVASuperadmin, created.ID, "GBP")
+	require.Error(t, err)
 	require.NoError(t, store.InsertWallet(ctx, nil, Wallet{ID: "ova-usd", Kind: "ova", Currency: "USD", Balance: "0.00"}, svc.now()))
 	require.NoError(t, store.InsertWallet(ctx, nil, Wallet{ID: "ova-ugx", Kind: "ova", Currency: "UGX", Balance: "0.00"}, svc.now()))
 	require.NoError(t, store.InsertWallet(ctx, nil, Wallet{ID: "fee-usd", Kind: "fee_transaction", Currency: "USD", Balance: "0.00"}, svc.now()))
@@ -77,21 +77,19 @@ func TestMoveBetweenOperatorWalletsUsesTheStandingRate(t *testing.T) {
 
 	wallets, err := store.Wallets(ctx, nil, created.ID)
 	require.NoError(t, err)
-	var usdID, ugxID, eurID string
+	var usdID, ugxID string
 	for _, wallet := range wallets {
 		switch wallet.Currency {
 		case "USD":
 			usdID = wallet.ID
 		case "UGX":
 			ugxID = wallet.ID
-		case "EUR":
-			eurID = wallet.ID
 		}
 	}
 
 	_, err = svc.MoveWallets(ctx, "owner-1", auth.RoleGuide, usdID, ugxID, "10")
 	require.Error(t, err)
-	_, err = svc.MoveWallets(ctx, "owner-1", auth.RoleOperatorOwner, usdID, eurID, "10")
+	_, err = svc.MoveWallets(ctx, "owner-1", auth.RoleOperatorOwner, usdID, "missing", "10")
 	require.Error(t, err)
 
 	moved, err := svc.MoveWallets(ctx, "owner-1", auth.RoleOperatorOwner, usdID, ugxID, "10")

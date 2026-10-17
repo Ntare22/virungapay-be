@@ -108,7 +108,7 @@ type Tariff struct {
 
 // TariffRequest is the day's quotation and VirungaPay's markup.
 type TariffRequest struct {
-	Pair           string `json:"pair" binding:"required" example:"EUR/UGX"`
+	Pair           string `json:"pair" binding:"required" example:"USD/UGX"`
 	IntegratorRate string `json:"integrator_rate" binding:"required"`
 	MarkupBps      int    `json:"markup_bps" binding:"min=0"`
 }

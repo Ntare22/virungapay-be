@@ -313,8 +313,8 @@ func (s *Service) Send(ctx context.Context, userID, role, id string) (Itinerary,
 	if item.Status != "draft" {
 		return Itinerary{}, middleware.Unprocessable("already_sent", "this itinerary was already sent")
 	}
-	if item.Currency != "USD" && item.Currency != "EUR" {
-		return Itinerary{}, middleware.Invalid("invalid_request", "choose USD or EUR")
+	if item.Currency != "USD" {
+		return Itinerary{}, middleware.Invalid("invalid_request", "choose USD")
 	}
 	if item.AmountDue == "" || item.AmountDue == "0.00" || item.AmountDue == "0" {
 		return Itinerary{}, middleware.Invalid("invalid_request", "enter the amount due before sending")
@@ -524,8 +524,8 @@ func normalizeItinerary(item Itinerary) (Itinerary, error) {
 	if item.PartySize < 1 {
 		return Itinerary{}, middleware.Invalid("invalid_request", "enter how many people are travelling")
 	}
-	if item.Currency != "" && item.Currency != "USD" && item.Currency != "EUR" {
-		return Itinerary{}, middleware.Invalid("invalid_request", "choose USD or EUR")
+	if item.Currency != "" && item.Currency != "USD" {
+		return Itinerary{}, middleware.Invalid("invalid_request", "choose USD")
 	}
 	amount := strings.TrimSpace(item.AmountDue)
 	if amount == "" {

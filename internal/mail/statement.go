@@ -23,6 +23,31 @@ type StatementRow struct {
 	Balance string
 }
 
+// WalletsStatementPDF is one statement covering every wallet of a company.
+func WalletsStatementPDF(title, generated string, wallets []Statement) []byte {
+	lines := []string{"VirungaPay", title, "Generated " + generated, ""}
+	if len(wallets) == 0 {
+		lines = append(lines, "No wallets yet.")
+		return textPDF(lines)
+	}
+	for _, wallet := range wallets {
+		balance := wallet.Balance
+		if balance == "" {
+			balance = "0.00"
+		}
+		lines = append(lines, wallet.Title, wallet.Currency+" "+balance, "When                  Type            In           Out        Balance")
+		if len(wallet.Rows) == 0 {
+			lines = append(lines, "No transactions yet.", "")
+			continue
+		}
+		for _, row := range wallet.Rows {
+			lines = append(lines, fmt.Sprintf("%-20s  %-12s  %10s  %10s  %10s", row.When, row.Kind, row.In, row.Out, row.Balance))
+		}
+		lines = append(lines, "")
+	}
+	return textPDF(lines)
+}
+
 // StatementPDF is the downloadable wallet statement.
 func StatementPDF(data Statement) []byte {
 	balance := data.Balance

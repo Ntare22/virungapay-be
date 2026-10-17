@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"math/big"
+	"sort"
 	"strings"
 	"time"
 
@@ -35,7 +36,7 @@ func (s *Service) SaveFeeSchedule(ctx context.Context, actorID, role string, sch
 	schedule.Kind = strings.ToLower(strings.TrimSpace(schedule.Kind))
 	schedule.Currency = strings.ToUpper(strings.TrimSpace(schedule.Currency))
 	if !validFeeKind(schedule.Kind) || !validCurrency(schedule.Currency) {
-		return FeeSchedule{}, middleware.Invalid("invalid_request", "choose a transaction and USD, EUR, or UGX")
+		return FeeSchedule{}, middleware.Invalid("invalid_request", "choose a transaction and USD or UGX")
 	}
 	if schedule.MarkupBps < 0 {
 		return FeeSchedule{}, middleware.Invalid("invalid_request", "markup cannot be negative")
@@ -109,6 +110,86 @@ func (s *Service) WalletStatement(ctx context.Context, userID, role string) (Wal
 	return wallet, lines, nil
 }
 
+// Statement is one wallet the caller owns, with a running balance.
+func (s *Service) Statement(ctx context.Context, userID, role, walletID string) (Wallet, []StatementLine, error) {
+	wallet, err := s.store.WalletByID(ctx, walletID)
+	if errors.Is(err, errNotFound) {
+		return Wallet{}, nil, middleware.NotFound("wallet_not_found", "wallet was not found")
+	}
+	if err != nil {
+		return Wallet{}, nil, middleware.Internal("internal_error", "internal server error")
+	}
+	if wallet.Kind == "ova" || strings.HasPrefix(wallet.Kind, "fee_") || !validCurrency(wallet.Currency) {
+		return Wallet{}, nil, middleware.NotFound("wallet_not_found", "wallet was not found")
+	}
+	owns, err := s.ownsWallet(ctx, userID, role, wallet)
+	if err != nil {
+		return Wallet{}, nil, middleware.Internal("internal_error", "internal server error")
+	}
+	if !owns {
+		return Wallet{}, nil, middleware.NotFound("wallet_not_found", "wallet was not found")
+	}
+	movements, err := s.store.ListMovements(ctx, wallet.ID)
+	if err != nil {
+		return Wallet{}, nil, middleware.Internal("internal_error", "internal server error")
+	}
+	lines, err := statementLines(movements)
+	if err != nil {
+		return Wallet{}, nil, middleware.Internal("internal_error", "internal server error")
+	}
+	if lines == nil {
+		lines = []StatementLine{}
+	}
+	return wallet, lines, nil
+}
+
+// CompanyStatement is each wallet of the signed-in tour operator, with a running balance.
+func (s *Service) CompanyStatement(ctx context.Context, userID, role string) (string, []Wallet, [][]StatementLine, error) {
+	if role != auth.RoleOperatorOwner {
+		return "", nil, nil, middleware.Forbidden("forbidden", "only a tour operator can download this statement")
+	}
+	company, err := s.Mine(ctx, userID, role)
+	if err != nil {
+		return "", nil, nil, err
+	}
+	wallets := make([]Wallet, 0, len(company.Wallets))
+	for _, wallet := range company.Wallets {
+		if validCurrency(wallet.Currency) {
+			wallets = append(wallets, wallet)
+		}
+	}
+	sort.SliceStable(wallets, func(i, j int) bool {
+		return currencyRank(wallets[i].Currency) < currencyRank(wallets[j].Currency)
+	})
+	groups := make([][]StatementLine, 0, len(wallets))
+	for _, wallet := range wallets {
+		movements, err := s.store.ListMovements(ctx, wallet.ID)
+		if err != nil {
+			return "", nil, nil, middleware.Internal("internal_error", "internal server error")
+		}
+		lines, err := statementLines(movements)
+		if err != nil {
+			return "", nil, nil, middleware.Internal("internal_error", "internal server error")
+		}
+		if lines == nil {
+			lines = []StatementLine{}
+		}
+		groups = append(groups, lines)
+	}
+	return company.Name, wallets, groups, nil
+}
+
+func currencyRank(currency string) int {
+	switch currency {
+	case "UGX":
+		return 0
+	case "USD":
+		return 1
+	default:
+		return 3
+	}
+}
+
 func statementLines(movements []Movement) ([]StatementLine, error) {
 	running := new(big.Rat)
 	lines := make([]StatementLine, 0, len(movements))
@@ -154,7 +235,7 @@ func (s *Service) RecordCollection(ctx context.Context, role, businessID, curren
 	}
 	currency = strings.ToUpper(strings.TrimSpace(currency))
 	if !validCurrency(currency) {
-		return middleware.Invalid("invalid_request", "choose USD, EUR, or UGX")
+		return middleware.Invalid("invalid_request", "choose USD or UGX")
 	}
 	gross, err := positiveMoney(amount)
 	if err != nil {
@@ -193,7 +274,7 @@ func (s *Service) RecordWithdrawal(ctx context.Context, role, businessID, bureau
 	}
 	currency = strings.ToUpper(strings.TrimSpace(currency))
 	if !validCurrency(currency) {
-		return middleware.Invalid("invalid_request", "choose USD, EUR, or UGX")
+		return middleware.Invalid("invalid_request", "choose USD or UGX")
 	}
 	gross, err := positiveMoney(amount)
 	if err != nil {
@@ -283,8 +364,8 @@ func (s *Service) RecordTip(ctx context.Context, role, fromUserID, toUserID, cur
 // after runs in the same transaction, after the wallets move.
 func (s *Service) CollectPayment(ctx context.Context, organisationID, currency, amount string, ref CardPayment, after func(tx *gorm.DB) error) error {
 	currency = strings.ToUpper(strings.TrimSpace(currency))
-	if currency != "USD" && currency != "EUR" {
-		return middleware.Invalid("invalid_request", "card payments are in USD or EUR")
+	if currency != "USD" {
+		return middleware.Invalid("invalid_request", "card payments are in USD")
 	}
 	gross, err := positiveMoney(amount)
 	if err != nil {
@@ -511,14 +592,12 @@ func (s *Service) MoveWallets(ctx context.Context, userID, role, fromID, toID, a
 
 func exchangePair(from, to string) (string, bool, error) {
 	switch from + "/" + to {
-	case "USD/UGX", "EUR/UGX":
-		return from + "/UGX", true, nil
+	case "USD/UGX":
+		return "USD/UGX", true, nil
 	case "UGX/USD":
 		return "USD/UGX", false, nil
-	case "UGX/EUR":
-		return "EUR/UGX", false, nil
 	default:
-		return "", false, middleware.Invalid("invalid_request", "move between UGX and USD or EUR")
+		return "", false, middleware.Invalid("invalid_request", "move between UGX and USD")
 	}
 }
 
@@ -734,7 +813,7 @@ func (s *Service) WithdrawOwn(ctx context.Context, userID, role, bureauID, curre
 	}
 	currency = strings.ToUpper(strings.TrimSpace(currency))
 	if !validCurrency(currency) {
-		return middleware.Invalid("invalid_request", "choose USD, EUR, or UGX")
+		return middleware.Invalid("invalid_request", "choose USD or UGX")
 	}
 	gross, err := positiveMoney(amount)
 	if err != nil {
@@ -894,7 +973,7 @@ func money(value string) (*big.Rat, error) {
 }
 
 func validCurrency(currency string) bool {
-	return currency == "USD" || currency == "EUR" || currency == "UGX"
+	return currency == "USD" || currency == "UGX"
 }
 
 func validFeeKind(kind string) bool {
