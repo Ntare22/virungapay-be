@@ -62,6 +62,11 @@ func main() {
 	}
 	zerolog.DefaultContextLogger = &logger
 
+	if err := database.MigrateUp(cfg.Database.URL, "migrations"); err != nil {
+		logger.Fatal().Err(err).Msg("migrations")
+	}
+	logger.Info().Msg("migrations applied")
+
 	db, err := database.New(cfg.Database)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("database")
@@ -71,6 +76,11 @@ func main() {
 	apiServer, err := newServer(cfg, db, mail.NewMailjet(cfg.Mail))
 	if err != nil {
 		logger.Fatal().Err(err).Msg("http server")
+	}
+	if cfg.Staff.Email == "" || cfg.Staff.Password == "" {
+		logger.Warn().Msg("ADMIN_EMAIL and ADMIN_PASSWORD are unset, so no superadmin was created")
+	} else {
+		logger.Info().Str("email", cfg.Staff.Email).Msg("superadmin is ready")
 	}
 	apiServer.RegisterOnShutdown(func() {
 		if err := db.Close(); err != nil {
