@@ -64,6 +64,26 @@ type Itinerary struct {
 	PaidAt        *time.Time `json:"paid_at,omitempty"`
 }
 
+// PackageList is the operator's curated packages.
+type PackageList struct {
+	Packages []Package `json:"packages"`
+}
+
+// InquiryList is the operator's customer inquiries.
+type InquiryList struct {
+	Inquiries []Inquiry `json:"inquiries"`
+}
+
+// ItineraryList is a set of itineraries.
+type ItineraryList struct {
+	Itineraries []Itinerary `json:"itineraries"`
+}
+
+// AssignRequest attaches an itinerary to a tourist account.
+type AssignRequest struct {
+	TouristID string `json:"tourist_id" binding:"required"`
+}
+
 // Operator is the signed-in tour operator's company.
 type Operator struct {
 	OrganisationID string

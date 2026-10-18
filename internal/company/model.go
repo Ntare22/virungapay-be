@@ -331,6 +331,57 @@ type Member struct {
 	CreatedAt      time.Time
 }
 
+// CrewList is the guides and drivers on the signed-in operator's company.
+type CrewList struct {
+	Crew []CrewMember `json:"crew"`
+}
+
+// PersonWalletList is tourist, guide, and driver wallets for staff.
+type PersonWalletList struct {
+	Wallets []PersonWallet `json:"wallets"`
+}
+
+// TouristList is tourist accounts an operator can attach to an itinerary.
+type TouristList struct {
+	Tourists []TouristAccount `json:"tourists"`
+}
+
+// TariffList is the day's customer rates.
+type TariffList struct {
+	Tariffs []Tariff `json:"tariffs"`
+}
+
+// FeeList is the fee schedule for each kind and currency.
+type FeeList struct {
+	Fees []FeeSchedule `json:"fees"`
+}
+
+// WalletList is a set of wallets.
+type WalletList struct {
+	Wallets []Wallet `json:"wallets"`
+}
+
+// StatementView is one wallet and the movements that produced its balance.
+type StatementView struct {
+	Wallet    Wallet          `json:"wallet"`
+	Movements []StatementLine `json:"movements"`
+}
+
+// TransactionList is staff's view of recorded payments.
+type TransactionList struct {
+	Transactions []Transaction `json:"transactions"`
+}
+
+// PaymentList is money in and out of the signed-in operator's wallets.
+type PaymentList struct {
+	Payments []WalletActivity `json:"payments"`
+}
+
+// Recorded acknowledges a simulated money movement.
+type Recorded struct {
+	Status string `json:"status" example:"recorded"`
+}
+
 // Invite is a stored company invite. Only the token hash is persisted.
 type Invite struct {
 	ID             string

@@ -17,7 +17,27 @@ definitions:
     - password
     - token
     type: object
+  internal_auth.ConfirmLoginCodeRequest:
+    properties:
+      code:
+        example: "123456"
+        type: string
+      email:
+        example: amelie@example.com
+        type: string
+    required:
+    - code
+    - email
+    type: object
   internal_auth.ForgotRequest:
+    properties:
+      email:
+        example: amelie@example.com
+        type: string
+    required:
+    - email
+    type: object
+  internal_auth.LoginCodeRequest:
     properties:
       email:
         example: amelie@example.com
@@ -56,7 +76,11 @@ definitions:
         type: string
       email_verified:
         type: boolean
+      first_name:
+        type: string
       id:
+        type: string
+      last_name:
         type: string
       name:
         type: string
@@ -104,17 +128,75 @@ definitions:
       email:
         example: amelie@example.com
         type: string
-      name:
-        example: Amelie Laurent
+      first_name:
+        example: Amelie
         type: string
-      password:
-        example: correct horse
-        minLength: 8
+      last_name:
+        example: Laurent
         type: string
     required:
     - email
+    - first_name
+    - last_name
+    type: object
+  internal_company.BureauRequest:
+    properties:
+      country:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      owner:
+        type: string
+      phone:
+        type: string
+    required:
+    - country
+    - email
     - name
-    - password
+    - owner
+    type: object
+  internal_company.Business:
+    properties:
+      association_member_of:
+        type: string
+      country:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      owner_email:
+        type: string
+      owner_name:
+        type: string
+      status:
+        type: string
+      wallets:
+        items:
+          $ref: '#/definitions/internal_company.Wallet'
+        type: array
+    type: object
+  internal_company.BusinessList:
+    properties:
+      businesses:
+        items:
+          $ref: '#/definitions/internal_company.Business'
+        type: array
+    type: object
+  internal_company.CollectionRequest:
+    properties:
+      amount:
+        type: string
+      business_id:
+        type: string
+      currency:
+        type: string
+    required:
+    - amount
+    - business_id
+    - currency
     type: object
   internal_company.Company:
     properties:
@@ -126,6 +208,14 @@ definitions:
         type: string
       name:
         type: string
+      status:
+        type: string
+      type:
+        type: string
+      wallets:
+        items:
+          $ref: '#/definitions/internal_company.Wallet'
+        type: array
     type: object
   internal_company.CreateRequest:
     properties:
@@ -141,6 +231,68 @@ definitions:
     required:
     - country
     - name
+    type: object
+  internal_company.CrewList:
+    properties:
+      crew:
+        items:
+          $ref: '#/definitions/internal_company.CrewMember'
+        type: array
+    type: object
+  internal_company.CrewMember:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      role:
+        type: string
+      status:
+        type: string
+      user_id:
+        type: string
+      username:
+        type: string
+      wallet_balance:
+        type: string
+      wallet_currency:
+        type: string
+    type: object
+  internal_company.FeeList:
+    properties:
+      fees:
+        items:
+          $ref: '#/definitions/internal_company.FeeSchedule'
+        type: array
+    type: object
+  internal_company.FeeSchedule:
+    properties:
+      currency:
+        type: string
+      flat:
+        type: string
+      kind:
+        type: string
+      markup_bps:
+        type: integer
+    type: object
+  internal_company.FeeScheduleRequest:
+    properties:
+      currency:
+        type: string
+      flat:
+        type: string
+      kind:
+        type: string
+      markup_bps:
+        minimum: 0
+        type: integer
+    required:
+    - currency
+    - flat
+    - kind
     type: object
   internal_company.InviteRequest:
     properties:
@@ -172,13 +324,479 @@ definitions:
       user_id:
         type: string
     type: object
+  internal_company.MobileMoneyRequest:
+    properties:
+      amount:
+        type: string
+      network:
+        example: mtn
+        type: string
+      phone:
+        example: "+256771234567"
+        type: string
+    required:
+    - amount
+    - network
+    - phone
+    type: object
+  internal_company.MoveRequest:
+    properties:
+      amount:
+        type: string
+      from_wallet_id:
+        type: string
+      to_wallet_id:
+        type: string
+    required:
+    - amount
+    - from_wallet_id
+    - to_wallet_id
+    type: object
+  internal_company.OwnTipRequest:
+    properties:
+      amount:
+        type: string
+      purpose:
+        example: tip
+        type: string
+      username:
+        example: peter-ugx
+        type: string
+    required:
+    - amount
+    - username
+    type: object
+  internal_company.OwnWithdrawalRequest:
+    properties:
+      amount:
+        type: string
+      bureau_id:
+        type: string
+      currency:
+        type: string
+    required:
+    - amount
+    - bureau_id
+    - currency
+    type: object
+  internal_company.PaymentList:
+    properties:
+      payments:
+        items:
+          $ref: '#/definitions/internal_company.WalletActivity'
+        type: array
+    type: object
+  internal_company.PersonWallet:
+    properties:
+      balance:
+        type: string
+      currency:
+        type: string
+      holder_email:
+        type: string
+      holder_name:
+        type: string
+      holder_role:
+        type: string
+      holder_status:
+        type: string
+      id:
+        type: string
+      kind:
+        type: string
+      name:
+        type: string
+      username:
+        type: string
+    type: object
+  internal_company.PersonWalletList:
+    properties:
+      wallets:
+        items:
+          $ref: '#/definitions/internal_company.PersonWallet'
+        type: array
+    type: object
+  internal_company.Recorded:
+    properties:
+      status:
+        example: recorded
+        type: string
+    type: object
+  internal_company.RenameWalletRequest:
+    properties:
+      name:
+        example: Safari float
+        type: string
+      username:
+        example: safari-float
+        type: string
+    type: object
+  internal_company.StatementLine:
+    properties:
+      amount:
+        type: string
+      created_at:
+        type: string
+      currency:
+        type: string
+      direction:
+        type: string
+      id:
+        type: string
+      kind:
+        type: string
+      running_balance:
+        type: string
+    type: object
+  internal_company.StatementView:
+    properties:
+      movements:
+        items:
+          $ref: '#/definitions/internal_company.StatementLine'
+        type: array
+      wallet:
+        $ref: '#/definitions/internal_company.Wallet'
+    type: object
+  internal_company.Tariff:
+    properties:
+      customer_rate:
+        type: string
+      integrator_rate:
+        type: string
+      markup_bps:
+        type: integer
+      pair:
+        type: string
+      quote_on:
+        type: string
+    type: object
+  internal_company.TariffList:
+    properties:
+      tariffs:
+        items:
+          $ref: '#/definitions/internal_company.Tariff'
+        type: array
+    type: object
+  internal_company.TariffRequest:
+    properties:
+      integrator_rate:
+        type: string
+      markup_bps:
+        minimum: 0
+        type: integer
+      pair:
+        example: USD/UGX
+        type: string
+    required:
+    - integrator_rate
+    - pair
+    type: object
+  internal_company.TipRequest:
+    properties:
+      amount:
+        type: string
+      currency:
+        type: string
+      from_user_id:
+        type: string
+      to_user_id:
+        type: string
+    required:
+    - amount
+    - currency
+    - from_user_id
+    - to_user_id
+    type: object
+  internal_company.TopUpRequest:
+    properties:
+      amount:
+        type: string
+      last4:
+        example: "4242"
+        type: string
+    required:
+    - amount
+    - last4
+    type: object
+  internal_company.TouristAccount:
+    properties:
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      username:
+        type: string
+    type: object
+  internal_company.TouristList:
+    properties:
+      tourists:
+        items:
+          $ref: '#/definitions/internal_company.TouristAccount'
+        type: array
+    type: object
+  internal_company.Transaction:
+    properties:
+      created_at:
+        type: string
+      currency:
+        type: string
+      fee:
+        type: string
+      from_name:
+        type: string
+      gross:
+        type: string
+      id:
+        type: string
+      invoice_number:
+        type: string
+      kind:
+        type: string
+      net:
+        type: string
+      quote_amount:
+        type: string
+      quote_currency:
+        type: string
+      to_name:
+        type: string
+    type: object
+  internal_company.TransactionList:
+    properties:
+      transactions:
+        items:
+          $ref: '#/definitions/internal_company.Transaction'
+        type: array
+    type: object
+  internal_company.Wallet:
+    properties:
+      balance:
+        type: string
+      currency:
+        type: string
+      id:
+        type: string
+      is_default:
+        type: boolean
+      kind:
+        type: string
+      name:
+        type: string
+      username:
+        type: string
+    type: object
+  internal_company.WalletActivity:
+    properties:
+      amount:
+        type: string
+      counterparty:
+        type: string
+      created_at:
+        type: string
+      currency:
+        type: string
+      direction:
+        type: string
+      id:
+        type: string
+      invoice_number:
+        type: string
+      kind:
+        type: string
+    type: object
+  internal_company.WalletList:
+    properties:
+      wallets:
+        items:
+          $ref: '#/definitions/internal_company.Wallet'
+        type: array
+    type: object
+  internal_company.WalletLookup:
+    properties:
+      currency:
+        type: string
+      kind:
+        type: string
+      name:
+        type: string
+      username:
+        type: string
+    type: object
+  internal_company.WalletRequest:
+    properties:
+      currency:
+        example: USD
+        type: string
+    required:
+    - currency
+    type: object
+  internal_company.WithdrawalRequest:
+    properties:
+      amount:
+        type: string
+      bureau_id:
+        type: string
+      business_id:
+        type: string
+      currency:
+        type: string
+    required:
+    - amount
+    - bureau_id
+    - business_id
+    - currency
+    type: object
+  internal_itinerary.AssignRequest:
+    properties:
+      tourist_id:
+        type: string
+    required:
+    - tourist_id
+    type: object
+  internal_itinerary.Day:
+    properties:
+      body:
+        type: string
+      day_number:
+        type: integer
+      title:
+        type: string
+    type: object
+  internal_itinerary.Inquiry:
+    properties:
+      created_at:
+        type: string
+      customer_email:
+        type: string
+      customer_name:
+        type: string
+      ends_on:
+        type: string
+      id:
+        type: string
+      notes:
+        type: string
+      party_size:
+        type: integer
+      starts_on:
+        type: string
+    type: object
+  internal_itinerary.InquiryList:
+    properties:
+      inquiries:
+        items:
+          $ref: '#/definitions/internal_itinerary.Inquiry'
+        type: array
+    type: object
+  internal_itinerary.Itinerary:
+    properties:
+      amount_due:
+        type: string
+      business_name:
+        type: string
+      currency:
+        type: string
+      customer_email:
+        type: string
+      customer_name:
+        type: string
+      days:
+        items:
+          $ref: '#/definitions/internal_itinerary.Day'
+        type: array
+      ends_on:
+        type: string
+      exclusions:
+        items:
+          type: string
+        type: array
+      id:
+        type: string
+      inclusions:
+        items:
+          type: string
+        type: array
+      inquiry_id:
+        type: string
+      invoice_number:
+        type: string
+      notes:
+        items:
+          type: string
+        type: array
+      package_id:
+        type: string
+      paid_at:
+        type: string
+      party_size:
+        type: integer
+      sent_at:
+        type: string
+      starts_on:
+        type: string
+      status:
+        type: string
+      summary:
+        type: string
+      title:
+        type: string
+      tourist_user_id:
+        type: string
+    type: object
+  internal_itinerary.ItineraryList:
+    properties:
+      itineraries:
+        items:
+          $ref: '#/definitions/internal_itinerary.Itinerary'
+        type: array
+    type: object
+  internal_itinerary.Package:
+    properties:
+      days:
+        items:
+          $ref: '#/definitions/internal_itinerary.Day'
+        type: array
+      exclusions:
+        items:
+          type: string
+        type: array
+      id:
+        type: string
+      inclusions:
+        items:
+          type: string
+        type: array
+      notes:
+        items:
+          type: string
+        type: array
+      status:
+        type: string
+      summary:
+        type: string
+      title:
+        type: string
+    type: object
+  internal_itinerary.PackageList:
+    properties:
+      packages:
+        items:
+          $ref: '#/definitions/internal_itinerary.Package'
+        type: array
+    type: object
   virungapay-be_internal_auth.PublicUser:
     properties:
       email:
         type: string
       email_verified:
         type: boolean
+      first_name:
+        type: string
       id:
+        type: string
+      last_name:
         type: string
       name:
         type: string
@@ -201,8 +819,11 @@ definitions:
       email:
         example: amina@example.com
         type: string
-      name:
-        example: Amina Kato
+      first_name:
+        example: Amina
+        type: string
+      last_name:
+        example: Kato
         type: string
       password:
         example: correct horse
@@ -213,7 +834,8 @@ definitions:
         type: string
     required:
     - email
-    - name
+    - first_name
+    - last_name
     - password
     type: object
   virungapay-be_internal_middleware.APIError:
@@ -312,6 +934,341 @@ paths:
       summary: Admin reset password
       tags:
       - auth
+  /admin/v1/bureaus:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_company.BusinessList'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List forex bureaus
+      tags:
+      - companies
+    post:
+      consumes:
+      - application/json
+      description: Staff create a bureau that is already approved.
+      parameters:
+      - description: Bureau
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_company.BureauRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_company.Business'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Add a forex bureau
+      tags:
+      - companies
+  /admin/v1/businesses:
+    get:
+      description: Lists operator companies and forex bureaus for staff.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_company.BusinessList'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List businesses
+      tags:
+      - companies
+  /admin/v1/businesses/{id}/approve:
+    post:
+      parameters:
+      - description: Business id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_company.Business'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Approve a business
+      tags:
+      - companies
+  /admin/v1/businesses/{id}/disable:
+    post:
+      parameters:
+      - description: Business id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_company.Business'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Disable a business
+      tags:
+      - companies
+  /admin/v1/businesses/{id}/wallets:
+    post:
+      consumes:
+      - application/json
+      description: Staff open a USD wallet on an approved business. UGX wallets are
+        created with the business.
+      parameters:
+      - description: Business id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Currency
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_company.WalletRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_company.Business'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Open a USD wallet
+      tags:
+      - wallets
+  /admin/v1/businesses/{id}/wallets/{walletId}/default:
+    post:
+      parameters:
+      - description: Business id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Wallet id
+        in: path
+        name: walletId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_company.Business'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Choose the default wallet
+      tags:
+      - wallets
+  /admin/v1/collections:
+    post:
+      consumes:
+      - application/json
+      description: Staff record a USD card payment collected for an operator.
+      parameters:
+      - description: Collection
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_company.CollectionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_company.Recorded'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Record a card collection
+      tags:
+      - payments
+  /admin/v1/fees:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_company.FeeList'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List fee schedules
+      tags:
+      - tariffs
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Fee
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_company.FeeScheduleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_company.FeeSchedule'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Save a fee schedule
+      tags:
+      - tariffs
   /admin/v1/me:
     get:
       produces:
@@ -330,6 +1287,247 @@ paths:
       summary: Admin current user
       tags:
       - auth
+  /admin/v1/person-wallets:
+    get:
+      description: Lists tourist, guide, and driver wallets for staff.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_company.PersonWalletList'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Person wallets
+      tags:
+      - wallets
+  /admin/v1/platform-wallets:
+    get:
+      description: Lists the VirungaPay operating wallets staff use for fees and float.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_company.WalletList'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Platform wallets
+      tags:
+      - wallets
+  /admin/v1/platform-wallets/{id}/statement:
+    get:
+      parameters:
+      - description: Wallet id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_company.StatementView'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Platform wallet statement
+      tags:
+      - wallets
+  /admin/v1/tariff:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_company.TariffList'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Today's customer rate for staff
+      tags:
+      - tariffs
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Rate
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_company.TariffRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_company.Tariff'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Set today's USD/UGX rate
+      tags:
+      - tariffs
+  /admin/v1/tips:
+    post:
+      consumes:
+      - application/json
+      description: Staff move money from a tourist wallet to a guide or driver.
+      parameters:
+      - description: Tip
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_company.TipRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_company.Recorded'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Record a tip
+      tags:
+      - payments
+  /admin/v1/transactions:
+    get:
+      description: Lists recorded payments for staff.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_company.TransactionList'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: All transactions
+      tags:
+      - payments
+  /admin/v1/withdrawals:
+    post:
+      consumes:
+      - application/json
+      description: Staff move money from an operator wallet to a forex bureau.
+      parameters:
+      - description: Withdrawal
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_company.WithdrawalRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_company.Recorded'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Record a withdrawal
+      tags:
+      - payments
   /healthz:
     get:
       description: Reports that the process is running.
@@ -441,6 +1639,63 @@ paths:
       summary: Sign in on the PWA
       tags:
       - auth
+  /v1/auth/login-code:
+    post:
+      consumes:
+      - application/json
+      description: Sends a code when the email can sign in on the phone. The response
+        is the same when the email is unknown, and it never contains the code.
+      parameters:
+      - description: Email
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_auth.LoginCodeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_auth.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      summary: Email a phone sign-in code
+      tags:
+      - auth
+  /v1/auth/login-code/verify:
+    post:
+      consumes:
+      - application/json
+      description: Consumes the emailed code and returns a session for the phone app.
+      parameters:
+      - description: Email and code
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_auth.ConfirmLoginCodeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_auth.Session'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      summary: Sign in with a phone code
+      tags:
+      - auth
   /v1/auth/reset-password:
     post:
       consumes:
@@ -471,8 +1726,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: Creates an unverified tourist and emails a verification link. Phone
-        is not collected here. The response has no session token.
+      description: Creates a tourist with no password. Sign-in on the phone uses a
+        code emailed to this address. The response has no session token.
       parameters:
       - description: Tourist
         in: body
@@ -524,6 +1779,59 @@ paths:
       summary: Verify an email
       tags:
       - auth
+  /v1/bureaus:
+    get:
+      description: Lists bureaus a person can withdraw to.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_company.BusinessList'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Approved forex bureaus
+      tags:
+      - companies
+    post:
+      consumes:
+      - application/json
+      description: Creates an unverified bureau owner and emails a verification link.
+        The response has no session token.
+      parameters:
+      - description: Bureau owner
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/virungapay-be_internal_auth.SignupRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created bureau owner
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_auth.RegisterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      summary: Register a forex bureau owner
+      tags:
+      - companies
   /v1/companies:
     post:
       consumes:
@@ -558,6 +1866,29 @@ paths:
       security:
       - BearerAuth: []
       summary: Create the tour company
+      tags:
+      - companies
+  /v1/companies/crew:
+    get:
+      description: Lists the signed-in operator's crew and each person's duty wallet.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_company.CrewList'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Guides and drivers
       tags:
       - companies
   /v1/companies/invites:
@@ -619,6 +1950,333 @@ paths:
       summary: Current company
       tags:
       - companies
+  /v1/companies/mine/statement:
+    get:
+      description: Downloads one PDF covering each of the signed-in operator's wallets.
+      produces:
+      - application/pdf
+      responses:
+        "200":
+          description: PDF statement
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Download the company statement
+      tags:
+      - wallets
+  /v1/inquiries:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_itinerary.InquiryList'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List inquiries
+      tags:
+      - itineraries
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Inquiry
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_itinerary.Inquiry'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_itinerary.Inquiry'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Record an inquiry
+      tags:
+      - itineraries
+  /v1/itineraries:
+    get:
+      description: Returns itineraries for the signed-in operator.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_itinerary.ItineraryList'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List itineraries
+      tags:
+      - itineraries
+    post:
+      consumes:
+      - application/json
+      description: Creates an itinerary, or replaces it when the path includes an
+        id. Create responds with 201.
+      parameters:
+      - description: Itinerary
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_itinerary.Itinerary'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_itinerary.Itinerary'
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_itinerary.Itinerary'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Save an itinerary
+      tags:
+      - itineraries
+  /v1/itineraries/{id}:
+    get:
+      parameters:
+      - description: Itinerary id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_itinerary.Itinerary'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Read an itinerary
+      tags:
+      - itineraries
+    put:
+      consumes:
+      - application/json
+      description: Creates an itinerary, or replaces it when the path includes an
+        id. Create responds with 201.
+      parameters:
+      - description: Itinerary id. Omit this on create.
+        in: path
+        name: id
+        type: string
+      - description: Itinerary
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_itinerary.Itinerary'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_itinerary.Itinerary'
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_itinerary.Itinerary'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Save an itinerary
+      tags:
+      - itineraries
+  /v1/itineraries/{id}/assign:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Itinerary id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Tourist
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_itinerary.AssignRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_itinerary.Itinerary'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Attach an itinerary to a tourist
+      tags:
+      - itineraries
+  /v1/itineraries/{id}/send:
+    post:
+      description: Sends the itinerary and its pay link to the customer. The amount
+        due is in USD.
+      parameters:
+      - description: Itinerary id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_itinerary.Itinerary'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Email an itinerary
+      tags:
+      - itineraries
+  /v1/itineraries/mine:
+    get:
+      description: Returns itineraries attached to the signed-in tourist.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_itinerary.ItineraryList'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: My itineraries
+      tags:
+      - itineraries
   /v1/me:
     get:
       produces:
@@ -676,6 +2334,47 @@ paths:
       summary: Add a phone number
       tags:
       - auth
+  /v1/mobile-money:
+    post:
+      consumes:
+      - application/json
+      description: Sends UGX from the signed-in tourist's wallet to Airtel or MTN
+        in Uganda.
+      parameters:
+      - description: Mobile money
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_company.MobileMoneyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_company.Recorded'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Send mobile money
+      tags:
+      - payments
   /v1/operators:
     post:
       consumes:
@@ -708,6 +2407,575 @@ paths:
       summary: Register an operator owner
       tags:
       - companies
+  /v1/packages:
+    get:
+      description: Returns the signed-in operator's curated packages. A package has
+        no price.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_itinerary.PackageList'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List packages
+      tags:
+      - itineraries
+    post:
+      consumes:
+      - application/json
+      description: Creates a package, or replaces the package when the path includes
+        an id.
+      parameters:
+      - description: Package
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_itinerary.Package'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_itinerary.Package'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Save a package
+      tags:
+      - itineraries
+  /v1/packages/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Creates a package, or replaces the package when the path includes
+        an id.
+      parameters:
+      - description: Package id. Omit this on create.
+        in: path
+        name: id
+        type: string
+      - description: Package
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_itinerary.Package'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_itinerary.Package'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Save a package
+      tags:
+      - itineraries
+  /v1/pay/{token}:
+    get:
+      description: No session is required. The token is the secret in the emailed
+        link.
+      parameters:
+      - description: Pay token
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_itinerary.Itinerary'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      summary: Read an itinerary from its pay link
+      tags:
+      - itineraries
+    post:
+      description: Records the USD card payment for the itinerary behind this pay
+        link. No session is required.
+      parameters:
+      - description: Pay token
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_itinerary.Itinerary'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      summary: Pay an itinerary by card
+      tags:
+      - itineraries
+  /v1/tariff:
+    get:
+      description: Returns the USD/UGX customer rate for the signed-in operator.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_company.TariffList'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Today's customer rate
+      tags:
+      - tariffs
+  /v1/tips:
+    post:
+      consumes:
+      - application/json
+      description: Moves money from the signed-in tourist to a guide, driver, or operator
+        wallet.
+      parameters:
+      - description: Payment
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_company.OwnTipRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_company.Recorded'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Send money to a username
+      tags:
+      - payments
+  /v1/tourists:
+    get:
+      description: Lists tourists an operator can attach to an itinerary.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_company.TouristList'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Tourist accounts
+      tags:
+      - companies
+  /v1/transactions:
+    get:
+      description: Lists money in and out of the signed-in operator's wallets.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_company.PaymentList'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Operator payments
+      tags:
+      - payments
+  /v1/wallets/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Updates the label and the username senders use to find the wallet.
+      parameters:
+      - description: Wallet id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Name
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_company.RenameWalletRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_company.Wallet'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Rename a wallet
+      tags:
+      - wallets
+  /v1/wallets/{id}/statement:
+    get:
+      description: Downloads a PDF for one wallet the caller owns. format must be
+        pdf.
+      parameters:
+      - description: Wallet id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: pdf
+        enum:
+        - pdf
+        in: query
+        name: format
+        required: true
+        type: string
+      produces:
+      - application/pdf
+      responses:
+        "200":
+          description: PDF statement
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Download a wallet statement
+      tags:
+      - wallets
+  /v1/wallets/lookup:
+    get:
+      description: Returns the name, currency, and kind a sender sees before money
+        moves. It does not include the balance.
+      parameters:
+      - description: Wallet username
+        in: query
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_company.WalletLookup'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Find a wallet by username
+      tags:
+      - wallets
+  /v1/wallets/mine:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_company.WalletList'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: My wallets
+      tags:
+      - wallets
+  /v1/wallets/mine/statement:
+    get:
+      description: Returns the signed-in person's wallet and its movements. Pass format=pdf
+        to download a PDF instead of JSON.
+      parameters:
+      - description: pdf
+        enum:
+        - pdf
+        in: query
+        name: format
+        type: string
+      produces:
+      - application/json
+      - application/pdf
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_company.StatementView'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: My wallet statement
+      tags:
+      - wallets
+  /v1/wallets/moves:
+    post:
+      consumes:
+      - application/json
+      description: Exchanges between the signed-in company's UGX and USD wallets at
+        today's customer rate.
+      parameters:
+      - description: Move
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_company.MoveRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_company.Company'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Move money between wallets
+      tags:
+      - wallets
+  /v1/wallets/topup:
+    post:
+      consumes:
+      - application/json
+      description: Adds USD to the signed-in tourist's VirungaPass Wallet. Only the
+        last four digits of the card are sent.
+      parameters:
+      - description: Top up
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_company.TopUpRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_company.Recorded'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Top up from a card
+      tags:
+      - payments
+  /v1/withdrawals:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Withdrawal
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_company.OwnWithdrawalRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_company.Recorded'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Withdraw to a forex bureau
+      tags:
+      - payments
 schemes:
 - http
 securityDefinitions:

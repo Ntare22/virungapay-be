@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -11,6 +12,7 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
+	"virungapay-be/docs"
 	"virungapay-be/internal/auth"
 	"virungapay-be/internal/company"
 	"virungapay-be/internal/config"
@@ -88,12 +90,52 @@ func mountDocs(r *gin.Engine) {
 		c.Redirect(http.StatusFound, "/docs/index.html")
 	})
 	r.GET("/docs/*any", func(c *gin.Context) {
-		if c.Param("any") == "/" || c.Param("any") == "" {
+		switch c.Param("any") {
+		case "/", "":
 			c.Redirect(http.StatusFound, "/docs/index.html")
-			return
+		case "/doc.json":
+			swaggerSpec(c)
+		default:
+			docs(c)
 		}
-		docs(c)
 	})
+}
+
+// swaggerSpec serves the OpenAPI document with the host that received the request.
+func swaggerSpec(c *gin.Context) {
+	spec := *docs.SwaggerInfo
+	spec.Host, spec.Schemes = requestOrigin(c.Request)
+	c.Data(http.StatusOK, "application/json; charset=utf-8", []byte(spec.ReadDoc()))
+}
+
+func requestOrigin(r *http.Request) (string, []string) {
+	host := r.Host
+	if forwarded := headerFirst(r, "X-Forwarded-Host"); forwarded != "" {
+		host = forwarded
+	}
+	scheme := "http"
+	if r.TLS != nil {
+		scheme = "https"
+	}
+	if proto := headerFirst(r, "X-Forwarded-Proto"); proto != "" {
+		scheme = proto
+	}
+	host = strings.TrimSpace(host)
+	if scheme == "https" {
+		host = strings.TrimSuffix(host, ":443")
+	}
+	if scheme == "http" {
+		host = strings.TrimSuffix(host, ":80")
+	}
+	return host, []string{scheme}
+}
+
+func headerFirst(r *http.Request, name string) string {
+	value := strings.TrimSpace(r.Header.Get(name))
+	if value == "" {
+		return ""
+	}
+	return strings.TrimSpace(strings.Split(value, ",")[0])
 }
 
 // healthz godoc

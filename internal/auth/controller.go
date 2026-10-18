@@ -112,6 +112,17 @@ func (h *Controller) login(c *gin.Context, audience string) {
 	c.JSON(http.StatusOK, session)
 }
 
+// RequestLoginCode godoc
+//
+//	@Summary		Email a phone sign-in code
+//	@Description	Sends a code when the email can sign in on the phone. The response is the same when the email is unknown, and it never contains the code.
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		LoginCodeRequest	true	"Email"
+//	@Success		200		{object}	MessageResponse
+//	@Failure		400		{object}	middleware.ErrorResponse
+//	@Router			/v1/auth/login-code [post]
 func (h *Controller) RequestLoginCode(c *gin.Context) {
 	var req LoginCodeRequest
 	if !bind(c, &req) {
@@ -124,6 +135,18 @@ func (h *Controller) RequestLoginCode(c *gin.Context) {
 	c.JSON(http.StatusOK, MessageResponse{Message: "If this email can sign in on the phone, we sent a code."})
 }
 
+// ConfirmLoginCode godoc
+//
+//	@Summary		Sign in with a phone code
+//	@Description	Consumes the emailed code and returns a session for the phone app.
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		ConfirmLoginCodeRequest	true	"Email and code"
+//	@Success		200		{object}	Session
+//	@Failure		400		{object}	middleware.ErrorResponse
+//	@Failure		401		{object}	middleware.ErrorResponse
+//	@Router			/v1/auth/login-code/verify [post]
 func (h *Controller) ConfirmLoginCode(c *gin.Context) {
 	var req ConfirmLoginCodeRequest
 	if !bind(c, &req) {

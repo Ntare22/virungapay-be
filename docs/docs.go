@@ -127,6 +127,535 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/v1/bureaus": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "companies"
+                ],
+                "summary": "List forex bureaus",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.BusinessList"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Staff create a bureau that is already approved.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "companies"
+                ],
+                "summary": "Add a forex bureau",
+                "parameters": [
+                    {
+                        "description": "Bureau",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.BureauRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.Business"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/v1/businesses": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lists operator companies and forex bureaus for staff.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "companies"
+                ],
+                "summary": "List businesses",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.BusinessList"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/v1/businesses/{id}/approve": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "companies"
+                ],
+                "summary": "Approve a business",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Business id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.Business"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/v1/businesses/{id}/disable": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "companies"
+                ],
+                "summary": "Disable a business",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Business id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.Business"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/v1/businesses/{id}/wallets": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Staff open a USD wallet on an approved business. UGX wallets are created with the business.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wallets"
+                ],
+                "summary": "Open a USD wallet",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Business id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Currency",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.WalletRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.Business"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/v1/businesses/{id}/wallets/{walletId}/default": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wallets"
+                ],
+                "summary": "Choose the default wallet",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Business id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Wallet id",
+                        "name": "walletId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.Business"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/v1/collections": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Staff record a USD card payment collected for an operator.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "payments"
+                ],
+                "summary": "Record a card collection",
+                "parameters": [
+                    {
+                        "description": "Collection",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.CollectionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.Recorded"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/v1/fees": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tariffs"
+                ],
+                "summary": "List fee schedules",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.FeeList"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tariffs"
+                ],
+                "summary": "Save a fee schedule",
+                "parameters": [
+                    {
+                        "description": "Fee",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.FeeScheduleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.FeeSchedule"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/v1/me": {
             "get": {
                 "security": [
@@ -150,6 +679,390 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/v1/person-wallets": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lists tourist, guide, and driver wallets for staff.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wallets"
+                ],
+                "summary": "Person wallets",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.PersonWalletList"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/v1/platform-wallets": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lists the VirungaPay operating wallets staff use for fees and float.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wallets"
+                ],
+                "summary": "Platform wallets",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.WalletList"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/v1/platform-wallets/{id}/statement": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wallets"
+                ],
+                "summary": "Platform wallet statement",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Wallet id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.StatementView"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/v1/tariff": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tariffs"
+                ],
+                "summary": "Today's customer rate for staff",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.TariffList"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tariffs"
+                ],
+                "summary": "Set today's USD/UGX rate",
+                "parameters": [
+                    {
+                        "description": "Rate",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.TariffRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.Tariff"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/v1/tips": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Staff move money from a tourist wallet to a guide or driver.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "payments"
+                ],
+                "summary": "Record a tip",
+                "parameters": [
+                    {
+                        "description": "Tip",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.TipRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.Recorded"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/v1/transactions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lists recorded payments for staff.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "payments"
+                ],
+                "summary": "All transactions",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.TransactionList"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/v1/withdrawals": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Staff move money from an operator wallet to a forex bureau.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "payments"
+                ],
+                "summary": "Record a withdrawal",
+                "parameters": [
+                    {
+                        "description": "Withdrawal",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.WithdrawalRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.Recorded"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
                         "schema": {
                             "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
                         }
@@ -323,6 +1236,92 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/auth/login-code": {
+            "post": {
+                "description": "Sends a code when the email can sign in on the phone. The response is the same when the email is unknown, and it never contains the code.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Email a phone sign-in code",
+                "parameters": [
+                    {
+                        "description": "Email",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_auth.LoginCodeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_auth.MessageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/auth/login-code/verify": {
+            "post": {
+                "description": "Consumes the emailed code and returns a session for the phone app.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Sign in with a phone code",
+                "parameters": [
+                    {
+                        "description": "Email and code",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_auth.ConfirmLoginCodeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_auth.Session"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/auth/reset-password": {
             "post": {
                 "description": "Consumes a reset token. The response does not contain a token.",
@@ -365,7 +1364,7 @@ const docTemplate = `{
         },
         "/v1/auth/tourists": {
             "post": {
-                "description": "Creates an unverified tourist and emails a verification link. Phone is not collected here. The response has no session token.",
+                "description": "Creates a tourist with no password. Sign-in on the phone uses a code emailed to this address. The response has no session token.",
                 "consumes": [
                     "application/json"
                 ],
@@ -449,6 +1448,87 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/bureaus": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lists bureaus a person can withdraw to.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "companies"
+                ],
+                "summary": "Approved forex bureaus",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.BusinessList"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates an unverified bureau owner and emails a verification link. The response has no session token.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "companies"
+                ],
+                "summary": "Register a forex bureau owner",
+                "parameters": [
+                    {
+                        "description": "Bureau owner",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_auth.SignupRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created bureau owner",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_auth.RegisterResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/companies": {
             "post": {
                 "security": [
@@ -499,6 +1579,43 @@ const docTemplate = `{
                     },
                     "409": {
                         "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/companies/crew": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lists the signed-in operator's crew and each person's duty wallet.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "companies"
+                ],
+                "summary": "Guides and drivers",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.CrewList"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
                         }
@@ -599,6 +1716,519 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/companies/mine/statement": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Downloads one PDF covering each of the signed-in operator's wallets.",
+                "produces": [
+                    "application/pdf"
+                ],
+                "tags": [
+                    "wallets"
+                ],
+                "summary": "Download the company statement",
+                "responses": {
+                    "200": {
+                        "description": "PDF statement",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/inquiries": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "itineraries"
+                ],
+                "summary": "List inquiries",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_itinerary.InquiryList"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "itineraries"
+                ],
+                "summary": "Record an inquiry",
+                "parameters": [
+                    {
+                        "description": "Inquiry",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_itinerary.Inquiry"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_itinerary.Inquiry"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/itineraries": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns itineraries for the signed-in operator.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "itineraries"
+                ],
+                "summary": "List itineraries",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_itinerary.ItineraryList"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates an itinerary, or replaces it when the path includes an id. Create responds with 201.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "itineraries"
+                ],
+                "summary": "Save an itinerary",
+                "parameters": [
+                    {
+                        "description": "Itinerary",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_itinerary.Itinerary"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_itinerary.Itinerary"
+                        }
+                    },
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/internal_itinerary.Itinerary"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/itineraries/mine": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns itineraries attached to the signed-in tourist.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "itineraries"
+                ],
+                "summary": "My itineraries",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_itinerary.ItineraryList"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/itineraries/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "itineraries"
+                ],
+                "summary": "Read an itinerary",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Itinerary id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_itinerary.Itinerary"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates an itinerary, or replaces it when the path includes an id. Create responds with 201.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "itineraries"
+                ],
+                "summary": "Save an itinerary",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Itinerary id. Omit this on create.",
+                        "name": "id",
+                        "in": "path"
+                    },
+                    {
+                        "description": "Itinerary",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_itinerary.Itinerary"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_itinerary.Itinerary"
+                        }
+                    },
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/internal_itinerary.Itinerary"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/itineraries/{id}/assign": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "itineraries"
+                ],
+                "summary": "Attach an itinerary to a tourist",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Itinerary id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Tourist",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_itinerary.AssignRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_itinerary.Itinerary"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/itineraries/{id}/send": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Sends the itinerary and its pay link to the customer. The amount due is in USD.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "itineraries"
+                ],
+                "summary": "Email an itinerary",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Itinerary id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_itinerary.Itinerary"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/me": {
             "get": {
                 "security": [
@@ -690,6 +2320,69 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/mobile-money": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Sends UGX from the signed-in tourist's wallet to Airtel or MTN in Uganda.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "payments"
+                ],
+                "summary": "Send mobile money",
+                "parameters": [
+                    {
+                        "description": "Mobile money",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.MobileMoneyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.Recorded"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/operators": {
             "post": {
                 "description": "Creates an unverified operator owner and emails a verification link. This is separate from tourist signup. The response has no session token and no role field.",
@@ -735,6 +2428,884 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/v1/packages": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns the signed-in operator's curated packages. A package has no price.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "itineraries"
+                ],
+                "summary": "List packages",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_itinerary.PackageList"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a package, or replaces the package when the path includes an id.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "itineraries"
+                ],
+                "summary": "Save a package",
+                "parameters": [
+                    {
+                        "description": "Package",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_itinerary.Package"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_itinerary.Package"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/packages/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a package, or replaces the package when the path includes an id.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "itineraries"
+                ],
+                "summary": "Save a package",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Package id. Omit this on create.",
+                        "name": "id",
+                        "in": "path"
+                    },
+                    {
+                        "description": "Package",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_itinerary.Package"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_itinerary.Package"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/pay/{token}": {
+            "get": {
+                "description": "No session is required. The token is the secret in the emailed link.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "itineraries"
+                ],
+                "summary": "Read an itinerary from its pay link",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Pay token",
+                        "name": "token",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_itinerary.Itinerary"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Records the USD card payment for the itinerary behind this pay link. No session is required.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "itineraries"
+                ],
+                "summary": "Pay an itinerary by card",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Pay token",
+                        "name": "token",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_itinerary.Itinerary"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/tariff": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns the USD/UGX customer rate for the signed-in operator.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tariffs"
+                ],
+                "summary": "Today's customer rate",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.TariffList"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/tips": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Moves money from the signed-in tourist to a guide, driver, or operator wallet.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "payments"
+                ],
+                "summary": "Send money to a username",
+                "parameters": [
+                    {
+                        "description": "Payment",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.OwnTipRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.Recorded"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/tourists": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lists tourists an operator can attach to an itinerary.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "companies"
+                ],
+                "summary": "Tourist accounts",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.TouristList"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/transactions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lists money in and out of the signed-in operator's wallets.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "payments"
+                ],
+                "summary": "Operator payments",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.PaymentList"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/wallets/lookup": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns the name, currency, and kind a sender sees before money moves. It does not include the balance.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wallets"
+                ],
+                "summary": "Find a wallet by username",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Wallet username",
+                        "name": "username",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.WalletLookup"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/wallets/mine": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wallets"
+                ],
+                "summary": "My wallets",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.WalletList"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/wallets/mine/statement": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns the signed-in person's wallet and its movements. Pass format=pdf to download a PDF instead of JSON.",
+                "produces": [
+                    "application/json",
+                    "application/pdf"
+                ],
+                "tags": [
+                    "wallets"
+                ],
+                "summary": "My wallet statement",
+                "parameters": [
+                    {
+                        "enum": [
+                            "pdf"
+                        ],
+                        "type": "string",
+                        "description": "pdf",
+                        "name": "format",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.StatementView"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/wallets/moves": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Exchanges between the signed-in company's UGX and USD wallets at today's customer rate.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wallets"
+                ],
+                "summary": "Move money between wallets",
+                "parameters": [
+                    {
+                        "description": "Move",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.MoveRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.Company"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/wallets/topup": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Adds USD to the signed-in tourist's VirungaPass Wallet. Only the last four digits of the card are sent.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "payments"
+                ],
+                "summary": "Top up from a card",
+                "parameters": [
+                    {
+                        "description": "Top up",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.TopUpRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.Recorded"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/wallets/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates the label and the username senders use to find the wallet.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wallets"
+                ],
+                "summary": "Rename a wallet",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Wallet id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Name",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.RenameWalletRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.Wallet"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/wallets/{id}/statement": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Downloads a PDF for one wallet the caller owns. format must be pdf.",
+                "produces": [
+                    "application/pdf"
+                ],
+                "tags": [
+                    "wallets"
+                ],
+                "summary": "Download a wallet statement",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Wallet id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "pdf"
+                        ],
+                        "type": "string",
+                        "description": "pdf",
+                        "name": "format",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "PDF statement",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/withdrawals": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "payments"
+                ],
+                "summary": "Withdraw to a forex bureau",
+                "parameters": [
+                    {
+                        "description": "Withdrawal",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.OwnWithdrawalRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_company.Recorded"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -763,7 +3334,36 @@ const docTemplate = `{
                 }
             }
         },
+        "internal_auth.ConfirmLoginCodeRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "email"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "example": "123456"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "amelie@example.com"
+                }
+            }
+        },
         "internal_auth.ForgotRequest": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "amelie@example.com"
+                }
+            }
+        },
+        "internal_auth.LoginCodeRequest": {
             "type": "object",
             "required": [
                 "email"
@@ -821,7 +3421,13 @@ const docTemplate = `{
                 "email_verified": {
                     "type": "boolean"
                 },
+                "first_name": {
+                    "type": "string"
+                },
                 "id": {
+                    "type": "string"
+                },
+                "last_name": {
                     "type": "string"
                 },
                 "name": {
@@ -891,22 +3497,109 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "email",
-                "name",
-                "password"
+                "first_name",
+                "last_name"
             ],
             "properties": {
                 "email": {
                     "type": "string",
                     "example": "amelie@example.com"
                 },
-                "name": {
+                "first_name": {
                     "type": "string",
-                    "example": "Amelie Laurent"
+                    "example": "Amelie"
                 },
-                "password": {
+                "last_name": {
                     "type": "string",
-                    "minLength": 8,
-                    "example": "correct horse"
+                    "example": "Laurent"
+                }
+            }
+        },
+        "internal_company.BureauRequest": {
+            "type": "object",
+            "required": [
+                "country",
+                "email",
+                "name",
+                "owner"
+            ],
+            "properties": {
+                "country": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "owner": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_company.Business": {
+            "type": "object",
+            "properties": {
+                "association_member_of": {
+                    "type": "string"
+                },
+                "country": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "owner_email": {
+                    "type": "string"
+                },
+                "owner_name": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "wallets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_company.Wallet"
+                    }
+                }
+            }
+        },
+        "internal_company.BusinessList": {
+            "type": "object",
+            "properties": {
+                "businesses": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_company.Business"
+                    }
+                }
+            }
+        },
+        "internal_company.CollectionRequest": {
+            "type": "object",
+            "required": [
+                "amount",
+                "business_id",
+                "currency"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "string"
+                },
+                "business_id": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
                 }
             }
         },
@@ -924,6 +3617,18 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "wallets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_company.Wallet"
+                    }
                 }
             }
         },
@@ -945,6 +3650,100 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "Kigezi Highland Safaris"
+                }
+            }
+        },
+        "internal_company.CrewList": {
+            "type": "object",
+            "properties": {
+                "crew": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_company.CrewMember"
+                    }
+                }
+            }
+        },
+        "internal_company.CrewMember": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "wallet_balance": {
+                    "type": "string"
+                },
+                "wallet_currency": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_company.FeeList": {
+            "type": "object",
+            "properties": {
+                "fees": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_company.FeeSchedule"
+                    }
+                }
+            }
+        },
+        "internal_company.FeeSchedule": {
+            "type": "object",
+            "properties": {
+                "currency": {
+                    "type": "string"
+                },
+                "flat": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string"
+                },
+                "markup_bps": {
+                    "type": "integer"
+                }
+            }
+        },
+        "internal_company.FeeScheduleRequest": {
+            "type": "object",
+            "required": [
+                "currency",
+                "flat",
+                "kind"
+            ],
+            "properties": {
+                "currency": {
+                    "type": "string"
+                },
+                "flat": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string"
+                },
+                "markup_bps": {
+                    "type": "integer",
+                    "minimum": 0
                 }
             }
         },
@@ -991,6 +3790,703 @@ const docTemplate = `{
                 }
             }
         },
+        "internal_company.MobileMoneyRequest": {
+            "type": "object",
+            "required": [
+                "amount",
+                "network",
+                "phone"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "string"
+                },
+                "network": {
+                    "type": "string",
+                    "example": "mtn"
+                },
+                "phone": {
+                    "type": "string",
+                    "example": "+256771234567"
+                }
+            }
+        },
+        "internal_company.MoveRequest": {
+            "type": "object",
+            "required": [
+                "amount",
+                "from_wallet_id",
+                "to_wallet_id"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "string"
+                },
+                "from_wallet_id": {
+                    "type": "string"
+                },
+                "to_wallet_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_company.OwnTipRequest": {
+            "type": "object",
+            "required": [
+                "amount",
+                "username"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "string"
+                },
+                "purpose": {
+                    "type": "string",
+                    "example": "tip"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "peter-ugx"
+                }
+            }
+        },
+        "internal_company.OwnWithdrawalRequest": {
+            "type": "object",
+            "required": [
+                "amount",
+                "bureau_id",
+                "currency"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "string"
+                },
+                "bureau_id": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_company.PaymentList": {
+            "type": "object",
+            "properties": {
+                "payments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_company.WalletActivity"
+                    }
+                }
+            }
+        },
+        "internal_company.PersonWallet": {
+            "type": "object",
+            "properties": {
+                "balance": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "holder_email": {
+                    "type": "string"
+                },
+                "holder_name": {
+                    "type": "string"
+                },
+                "holder_role": {
+                    "type": "string"
+                },
+                "holder_status": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_company.PersonWalletList": {
+            "type": "object",
+            "properties": {
+                "wallets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_company.PersonWallet"
+                    }
+                }
+            }
+        },
+        "internal_company.Recorded": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "example": "recorded"
+                }
+            }
+        },
+        "internal_company.RenameWalletRequest": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "Safari float"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "safari-float"
+                }
+            }
+        },
+        "internal_company.StatementLine": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "direction": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string"
+                },
+                "running_balance": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_company.StatementView": {
+            "type": "object",
+            "properties": {
+                "movements": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_company.StatementLine"
+                    }
+                },
+                "wallet": {
+                    "$ref": "#/definitions/internal_company.Wallet"
+                }
+            }
+        },
+        "internal_company.Tariff": {
+            "type": "object",
+            "properties": {
+                "customer_rate": {
+                    "type": "string"
+                },
+                "integrator_rate": {
+                    "type": "string"
+                },
+                "markup_bps": {
+                    "type": "integer"
+                },
+                "pair": {
+                    "type": "string"
+                },
+                "quote_on": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_company.TariffList": {
+            "type": "object",
+            "properties": {
+                "tariffs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_company.Tariff"
+                    }
+                }
+            }
+        },
+        "internal_company.TariffRequest": {
+            "type": "object",
+            "required": [
+                "integrator_rate",
+                "pair"
+            ],
+            "properties": {
+                "integrator_rate": {
+                    "type": "string"
+                },
+                "markup_bps": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "pair": {
+                    "type": "string",
+                    "example": "USD/UGX"
+                }
+            }
+        },
+        "internal_company.TipRequest": {
+            "type": "object",
+            "required": [
+                "amount",
+                "currency",
+                "from_user_id",
+                "to_user_id"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "from_user_id": {
+                    "type": "string"
+                },
+                "to_user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_company.TopUpRequest": {
+            "type": "object",
+            "required": [
+                "amount",
+                "last4"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "string"
+                },
+                "last4": {
+                    "type": "string",
+                    "example": "4242"
+                }
+            }
+        },
+        "internal_company.TouristAccount": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_company.TouristList": {
+            "type": "object",
+            "properties": {
+                "tourists": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_company.TouristAccount"
+                    }
+                }
+            }
+        },
+        "internal_company.Transaction": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "fee": {
+                    "type": "string"
+                },
+                "from_name": {
+                    "type": "string"
+                },
+                "gross": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "invoice_number": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string"
+                },
+                "net": {
+                    "type": "string"
+                },
+                "quote_amount": {
+                    "type": "string"
+                },
+                "quote_currency": {
+                    "type": "string"
+                },
+                "to_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_company.TransactionList": {
+            "type": "object",
+            "properties": {
+                "transactions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_company.Transaction"
+                    }
+                }
+            }
+        },
+        "internal_company.Wallet": {
+            "type": "object",
+            "properties": {
+                "balance": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_default": {
+                    "type": "boolean"
+                },
+                "kind": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_company.WalletActivity": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "string"
+                },
+                "counterparty": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "direction": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "invoice_number": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_company.WalletList": {
+            "type": "object",
+            "properties": {
+                "wallets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_company.Wallet"
+                    }
+                }
+            }
+        },
+        "internal_company.WalletLookup": {
+            "type": "object",
+            "properties": {
+                "currency": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_company.WalletRequest": {
+            "type": "object",
+            "required": [
+                "currency"
+            ],
+            "properties": {
+                "currency": {
+                    "type": "string",
+                    "example": "USD"
+                }
+            }
+        },
+        "internal_company.WithdrawalRequest": {
+            "type": "object",
+            "required": [
+                "amount",
+                "bureau_id",
+                "business_id",
+                "currency"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "string"
+                },
+                "bureau_id": {
+                    "type": "string"
+                },
+                "business_id": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_itinerary.AssignRequest": {
+            "type": "object",
+            "required": [
+                "tourist_id"
+            ],
+            "properties": {
+                "tourist_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_itinerary.Day": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "type": "string"
+                },
+                "day_number": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_itinerary.Inquiry": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "customer_email": {
+                    "type": "string"
+                },
+                "customer_name": {
+                    "type": "string"
+                },
+                "ends_on": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "party_size": {
+                    "type": "integer"
+                },
+                "starts_on": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_itinerary.InquiryList": {
+            "type": "object",
+            "properties": {
+                "inquiries": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_itinerary.Inquiry"
+                    }
+                }
+            }
+        },
+        "internal_itinerary.Itinerary": {
+            "type": "object",
+            "properties": {
+                "amount_due": {
+                    "type": "string"
+                },
+                "business_name": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "customer_email": {
+                    "type": "string"
+                },
+                "customer_name": {
+                    "type": "string"
+                },
+                "days": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_itinerary.Day"
+                    }
+                },
+                "ends_on": {
+                    "type": "string"
+                },
+                "exclusions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "inclusions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "inquiry_id": {
+                    "type": "string"
+                },
+                "invoice_number": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "package_id": {
+                    "type": "string"
+                },
+                "paid_at": {
+                    "type": "string"
+                },
+                "party_size": {
+                    "type": "integer"
+                },
+                "sent_at": {
+                    "type": "string"
+                },
+                "starts_on": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "summary": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "tourist_user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_itinerary.ItineraryList": {
+            "type": "object",
+            "properties": {
+                "itineraries": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_itinerary.Itinerary"
+                    }
+                }
+            }
+        },
+        "internal_itinerary.Package": {
+            "type": "object",
+            "properties": {
+                "days": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_itinerary.Day"
+                    }
+                },
+                "exclusions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "inclusions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "notes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "status": {
+                    "type": "string"
+                },
+                "summary": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_itinerary.PackageList": {
+            "type": "object",
+            "properties": {
+                "packages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_itinerary.Package"
+                    }
+                }
+            }
+        },
         "virungapay-be_internal_auth.PublicUser": {
             "type": "object",
             "properties": {
@@ -1000,7 +4496,13 @@ const docTemplate = `{
                 "email_verified": {
                     "type": "boolean"
                 },
+                "first_name": {
+                    "type": "string"
+                },
                 "id": {
+                    "type": "string"
+                },
+                "last_name": {
                     "type": "string"
                 },
                 "name": {
@@ -1032,7 +4534,8 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "email",
-                "name",
+                "first_name",
+                "last_name",
                 "password"
             ],
             "properties": {
@@ -1040,9 +4543,13 @@ const docTemplate = `{
                     "type": "string",
                     "example": "amina@example.com"
                 },
-                "name": {
+                "first_name": {
                     "type": "string",
-                    "example": "Amina Kato"
+                    "example": "Amina"
+                },
+                "last_name": {
+                    "type": "string",
+                    "example": "Kato"
                 },
                 "password": {
                     "type": "string",
