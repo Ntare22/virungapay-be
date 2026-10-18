@@ -20,6 +20,7 @@ import (
 	"virungapay-be/internal/itinerary"
 	"virungapay-be/internal/mail"
 	"virungapay-be/internal/middleware"
+	"virungapay-be/internal/waitlist"
 )
 
 // statusResponse is the body of the liveness and readiness probes.
@@ -69,6 +70,7 @@ func newHandler(cfg config.Config, db database.Service, sender mail.Sender) (htt
 		mountDocs(r)
 	}
 	authCtrl.Mount(r)
+	waitlist.NewController(waitlist.NewService(waitlist.NewRepository(db.DB()))).Mount(r)
 	companyCtrl.Mount(r, middleware.RequireAuth(authCtrl))
 	companyCtrl.MountAdmin(r, middleware.RequireAuth(authCtrl))
 	itineraryCtrl.Mount(r, middleware.RequireAuth(authCtrl))

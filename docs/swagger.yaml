@@ -786,6 +786,20 @@ definitions:
           $ref: '#/definitions/internal_itinerary.Package'
         type: array
     type: object
+  internal_waitlist.JoinRequest:
+    properties:
+      email:
+        example: amina@example.com
+        type: string
+    required:
+    - email
+    type: object
+  internal_waitlist.JoinResponse:
+    properties:
+      message:
+        example: You're on the list.
+        type: string
+    type: object
   virungapay-be_internal_auth.PublicUser:
     properties:
       email:
@@ -2673,6 +2687,33 @@ paths:
       summary: Operator payments
       tags:
       - payments
+  /v1/waitlist:
+    post:
+      consumes:
+      - application/json
+      description: Saves an email for the public coming-soon list. A repeat address
+        gets the same response.
+      parameters:
+      - description: Email
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_waitlist.JoinRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_waitlist.JoinResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/virungapay-be_internal_middleware.ErrorResponse'
+      summary: Join the waitlist
+      tags:
+      - waitlist
   /v1/wallets/{id}:
     patch:
       consumes:

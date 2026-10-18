@@ -2838,6 +2838,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/waitlist": {
+            "post": {
+                "description": "Saves an email for the public coming-soon list. A repeat address gets the same response.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "waitlist"
+                ],
+                "summary": "Join the waitlist",
+                "parameters": [
+                    {
+                        "description": "Email",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_waitlist.JoinRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_waitlist.JoinResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/virungapay-be_internal_middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/wallets/lookup": {
             "get": {
                 "security": [
@@ -4484,6 +4524,27 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/internal_itinerary.Package"
                     }
+                }
+            }
+        },
+        "internal_waitlist.JoinRequest": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "amina@example.com"
+                }
+            }
+        },
+        "internal_waitlist.JoinResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "You're on the list."
                 }
             }
         },
